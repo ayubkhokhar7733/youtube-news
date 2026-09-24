@@ -505,13 +505,13 @@
 
     async function triggerWorkflow(encodedTitle, cat) {
       const title = decodeURIComponent(encodedTitle);
-      const owner = localStorage.getItem("gh_owner");
-      const repo = localStorage.getItem("gh_repo");
+      const owner = localStorage.getItem("gh_owner") || "ayubkhokhar7733";
+      const repo = localStorage.getItem("gh_repo") || "youtube-news";
       const token = localStorage.getItem("gh_token");
 
-      if (!owner || !repo || !token) {
+      if (!token) {
         openSettingsModal();
-        showToast("⚠️ Please enter your GitHub details first", true);
+        showToast("⚠️ Please enter your GitHub Personal Access Token (PAT) first", true);
         return;
       }
 
@@ -537,10 +537,13 @@
         });
 
         if (res.status === 204) {
-          showToast("🎉 GitHub Action successfully triggered in cloud!");
+          showToast("🎉 Video generation successfully launched in cloud!");
         } else {
-          const err = await res.json();
-          showToast(`Error: ${err.message || 'Check GitHub token'}`, true);
+          const err = await res.json().catch(() => ({}));
+          const errMsg = res.status === 404
+            ? "Invalid token or missing 'workflow' scope. Check settings."
+            : (err.message || 'Check GitHub token');
+          showToast(`Error: ${errMsg}`, true);
         }
       } catch (e) {
         showToast(`Failed: ${e.message}`, true);

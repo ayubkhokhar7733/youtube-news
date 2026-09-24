@@ -64,6 +64,13 @@ def get_youtube_client(client_id: str = None, client_secret: str = None, refresh
     csec = client_secret or os.environ.get("YOUTUBE_CLIENT_SECRET") or getattr(config, "YOUTUBE_CLIENT_SECRET", None)
     rtoken = refresh_token or os.environ.get("YOUTUBE_REFRESH_TOKEN") or getattr(config, "YOUTUBE_REFRESH_TOKEN", None)
 
+    if cid:
+        cid = cid.strip().lstrip("\ufeff")
+    if csec:
+        csec = csec.strip().lstrip("\ufeff")
+    if rtoken:
+        rtoken = rtoken.strip().lstrip("\ufeff")
+
     # Fallback to checking .env directly if config doesn't have it yet
     if not (cid and csec and rtoken):
         env_file = os.path.join(os.path.dirname(__file__), ".env")
@@ -239,16 +246,17 @@ def upload_video(
     title: str,
     description: str,
     tags: list = None,
-    category: str = "Education",
+    category: str = "News & Politics",
     topic_category: str = None,
     thumbnail_path: str = None,
     privacy_status: str = "private",
-    contains_synthetic_media: bool = True,
+    contains_synthetic_media: bool = False,
     self_declared_made_for_kids: bool = False,
     client_id: str = None,
     client_secret: str = None,
     refresh_token: str = None,
     dry_run: bool = False,
+    category_id: str = None,
 ) -> dict:
     """
     Uploads a video to YouTube with metadata, custom thumbnail, and synthetic media disclosure flag.
@@ -292,9 +300,10 @@ def upload_video(
             if total_tag_chars + len(sanitized) + 1 <= 400:
                 clean_tags.append(sanitized)
                 total_tag_chars += len(sanitized) + 1
-
     if not clean_tags:
         clean_tags = ["history", "science", "facts", "documentary", "did you know"]
+
+    cat_id = category_id or CATEGORY_MAPPING.get(category.lower(), "25")
 
     # Video resource body
     body = {
@@ -302,7 +311,7 @@ def upload_video(
             "title": clean_title,
             "description": description.strip(),
             "tags": clean_tags,
-            "categoryId": category_id,
+            "categoryId": cat_id,
             "defaultLanguage": "en",
             "defaultAudioLanguage": "en",
         },
