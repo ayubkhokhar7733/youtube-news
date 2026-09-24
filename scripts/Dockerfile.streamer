@@ -1,0 +1,14 @@
+# Ultra-lightweight 24/7 RTMP Streamer Container (< 80MB)
+FROM alpine:3.19
+
+RUN apk update && \
+    apk add --no-cache ffmpeg python3 py3-pip bash
+
+WORKDIR /app
+
+COPY scripts/live_streamer.py /app/live_streamer.py
+
+ENV YOUTUBE_STREAM_KEY=""
+ENV VIDEOS_DIR="/app/videos"
+
+CMD ["python3", "/app/live_streamer.py", "--videos-dir", "/app/videos"]

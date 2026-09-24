@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Flow Radar & Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131b2e;
+      --card-border: #1e293b;
+      --card-hover: #1e2942;
+      --accent: #ef4444;
+      --accent-glow: rgba(239, 68, 68, 0.25);
+      --ai-cyan: #06b6d4;
+      --gold: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .live-dot {
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .badge-auto {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    /* Actions bar */
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    button {
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-settings {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    .btn-settings:hover { background: #334155; }
+
+    /* Category Navigation */
+    .categories {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .cat-btn {
+      padding: 10px 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .cat-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    .cat-btn.ai.active {
+      background: var(--ai-cyan);
+      border-color: var(--ai-cyan);
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.3);
+    }
+
+    /* Custom Query Dispatch Box */
+    .custom-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 28px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .custom-input {
+      flex: 1;
+      min-width: 260px;
+      background: #090d16;
+      border: 1px solid #27354f;
+      border-radius: 8px;
+      color: white;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+
+    .custom-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn-dispatch {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-dispatch:hover {
+      background: #dc2626;
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    /* News Grid */
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .news-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .news-card:hover {
+      transform: translateY(-2px);
+      border-color: #3b82f6;
+    }
+
+    .news-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .news-source {
+      color: var(--gold);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .news-time {
+      color: var(--text-muted);
+    }
+
+    .news-title {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 12px;
+      color: white;
+    }
+
+    .news-snippet {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 18px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .btn-gen {
+      flex: 1;
+      padding: 10px 14px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: white;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-gen:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Modal for GitHub Actions Dispatch */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal {
+      background: #131b2e;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      width: 90%;
+      max-width: 480px;
+      padding: 24px;
+    }
+
+    .modal h3 { margin-bottom: 16px; font-size: 18px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      background: #090d16;
+      border: 1px solid #27354f;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* Toast Notification */
+    #toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #10b981;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px 18px;
+      position: fixed;
+      z-index: 1001;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+    #toast.show {
+      visibility: visible;
+      animation: fadein 0.3s, fadeout 0.3s 2.7s;
+    }
+    @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+    @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="live-dot"></div>
+        <h1>NEWS RADAR DESK</h1>
+        <span class="badge-auto">AUTONOMOUS 4X/DAY ACTIVE</span>
+      </div>
+      <div class="controls">
+        <button class="btn-settings" onclick="openSettingsModal()">⚙️ GitHub Settings</button>
+      </div>
+    </header>
+
+    <!-- Custom Search / Dispatch -->
+    <div class="custom-box">
+      <input type="text" id="customQuery" class="custom-input" placeholder="Type or paste any custom breaking topic to produce immediately...">
+      <button class="btn-dispatch" onclick="dispatchCustomTopic()">
+        ⚡ Produce Video
+      </button>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="categories">
+      <button class="cat-btn active" onclick="loadCategory('trump', this)">🇺🇸 Trump & US Politics</button>
+      <button class="cat-btn ai" onclick="loadCategory('ai', this)">🤖 AI & Emerging Tech</button>
+      <button class="cat-btn" onclick="loadCategory('global', this)">🌍 Global Breaking</button>
+      <button class="cat-btn" onclick="loadCategory('tech', this)">💻 Markets & Tech</button>
+    </div>
+
+    <!-- News Grid Container -->
+    <div id="newsGrid" class="news-grid">
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+        Loading live breaking stories...
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal">
+      <h3>⚙️ GitHub Dispatch Settings</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Saved in your browser local storage so you can trigger video creation with 1 tap.
+      </p>
+      <div class="form-group">
+        <label>GitHub Username</label>
+        <input type="text" id="ghOwner" placeholder="e.g. your-github-user">
+      </div>
+      <div class="form-group">
+        <label>Repository Name</label>
+        <input type="text" id="ghRepo" placeholder="e.g. news-flow">
+      </div>
+      <div class="form-group">
+        <label>GitHub Personal Access Token (PAT with 'workflow' permission)</label>
+        <input type="password" id="ghToken" placeholder="ghp_...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-settings" onclick="closeSettingsModal()">Cancel</button>
+        <button class="btn-dispatch" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    let currentCategory = 'trump';
+
+    const FEEDS = {
+      trump: "https://news.google.com/rss/search?q=Donald+Trump+OR+White+House+when:1d&hl=en-US&gl=US&ceid=US:en",
+      ai: "https://news.google.com/rss/search?q=Artificial+Intelligence+OR+OpenAI+OR+DeepSeek+when:1d&hl=en-US&gl=US&ceid=US:en",
+      global: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx1YlY4U0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en",
+      tech: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en"
+    };
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.backgroundColor = isError ? "#ef4444" : "#10b981";
+      toast.className = "show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+    }
+
+    function openSettingsModal() {
+      document.getElementById("ghOwner").value = localStorage.getItem("gh_owner") || "";
+      document.getElementById("ghRepo").value = localStorage.getItem("gh_repo") || "news-flow";
+      document.getElementById("ghToken").value = localStorage.getItem("gh_token") || "";
+      document.getElementById("settingsModal").style.display = "flex";
+    }
+
+    function closeSettingsModal() {
+      document.getElementById("settingsModal").style.display = "none";
+    }
+
+    function saveSettings() {
+      localStorage.setItem("gh_owner", document.getElementById("ghOwner").value.trim());
+      localStorage.setItem("gh_repo", document.getElementById("ghRepo").value.trim());
+      localStorage.setItem("gh_token", document.getElementById("ghToken").value.trim());
+      closeSettingsModal();
+      showToast("✅ Settings saved in browser!");
+    }
+
+    async function loadCategory(cat, btnElement) {
+      currentCategory = cat;
+      if (btnElement) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btnElement.classList.add('active');
+      }
+
+      const grid = document.getElementById("newsGrid");
+      grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">Fetching live verified headlines...</div>';
+
+      try {
+        const feedUrl = encodeURIComponent(FEEDS[cat]);
+        const resp = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}`);
+        const data = await resp.json();
+
+        if (data.status !== "ok" || !data.items || data.items.length === 0) {
+          throw new Error("Failed to load feed");
+        }
+
+        renderStories(data.items);
+      } catch (err) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ef4444;">Could not fetch live RSS. Check internet or trigger custom topic above.</div>`;
+      }
+    }
+
+    function renderStories(items) {
+      const grid = document.getElementById("newsGrid");
+      grid.innerHTML = "";
+
+      items.slice(0, 9).forEach(item => {
+        let title = item.title;
+        let source = "NEWS WIRE";
+        if (title.includes(" - ")) {
+          const parts = title.split(" - ");
+          source = parts.pop();
+          title = parts.join(" - ");
+        }
+
+        const cleanSnippet = item.content.replace(/<[^>]*>?/gm, '').slice(0, 140) + "...";
+        const pubDate = new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const card = document.createElement("div");
+        card.className = "news-card";
+        card.innerHTML = `
+          <div>
+            <div class="news-meta">
+              <span class="news-source">${source}</span>
+              <span class="news-time">${pubDate}</span>
+            </div>
+            <h2 class="news-title">${title}</h2>
+            <p class="news-snippet">${cleanSnippet}</p>
+          </div>
+          <div class="card-footer">
+            <button class="btn-gen" onclick="triggerWorkflow('${encodeURIComponent(title)}', '${currentCategory}')">
+              ⚡ Produce Video
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function triggerWorkflow(encodedTitle, cat) {
+      const title = decodeURIComponent(encodedTitle);
+      const owner = localStorage.getItem("gh_owner");
+      const repo = localStorage.getItem("gh_repo");
+      const token = localStorage.getItem("gh_token");
+
+      if (!owner || !repo || !token) {
+        openSettingsModal();
+        showToast("⚠️ Please enter your GitHub details first", true);
+        return;
+      }
+
+      showToast(`🚀 Launching video generation for: ${title.slice(0, 30)}...`);
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/news_publish.yml/dispatches`, {
+          method: "POST",
+          headers: {
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ref: "main",
+            inputs: {
+              category: cat,
+              query: title,
+              format: "shorts",
+              privacy: "public"
+            }
+          })
+        });
+
+        if (res.status === 204) {
+          showToast("🎉 GitHub Action successfully triggered in cloud!");
+        } else {
+          const err = await res.json();
+          showToast(`Error: ${err.message || 'Check GitHub token'}`, true);
+        }
+      } catch (e) {
+        showToast(`Failed: ${e.message}`, true);
+      }
+    }
+
+    function dispatchCustomTopic() {
+      const q = document.getElementById("customQuery").value.trim();
+      if (!q) {
+        showToast("Please enter a topic first", true);
+        return;
+      }
+      triggerWorkflow(encodeURIComponent(q), currentCategory);
+    }
+
+    // Auto-load initial category
+    loadCategory('trump');
+  </script>
+</body>
+</html>

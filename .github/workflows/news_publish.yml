@@ -1,0 +1,126 @@
+name: Autonomous Breaking News Video Engine
+
+on:
+  schedule:
+    # 4 automated posts daily across global timezones (UTC)
+    - cron: '0 6 * * *'   # 06:00 UTC (US morning / EU midday)
+    - cron: '0 12 * * *'  # 12:00 UTC (US noon / EU evening)
+    - cron: '0 18 * * *'  # 18:00 UTC (US evening peak)
+    - cron: '0 0 * * *'   # 00:00 UTC (Asia morning / US night)
+  workflow_dispatch:
+    inputs:
+      category:
+        description: 'News Category'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - trump
+          - ai
+          - tech
+          - global
+      format:
+        description: 'Video Format'
+        required: true
+        default: 'shorts'
+        type: choice
+        options:
+          - shorts
+          - landscape
+      privacy:
+        description: 'YouTube Upload Privacy'
+        required: true
+        default: 'public'
+        type: choice
+        options:
+          - public
+          - unlisted
+          - private
+      query:
+        description: 'Custom Topic/Headline Override (leave blank for auto trending news)'
+        required: false
+        default: ''
+        type: string
+      dry_run:
+        description: 'Dry run (render video without uploading to YouTube)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install System Dependencies & Newsroom Fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-liberation fonts-dejavu-core fonts-noto-color-emoji
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Autonomous News Pipeline & Publish to YouTube
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          CI: 'true'
+        run: |
+          CATEGORY="${{ github.event.inputs.category || 'auto' }}"
+          FORMAT="${{ github.event.inputs.format || 'shorts' }}"
+          PRIVACY="${{ github.event.inputs.privacy || 'public' }}"
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+          QUERY="${{ github.event.inputs.query }}"
+
+          CMD="python news_pipeline.py --category $CATEGORY --format $FORMAT --privacy $PRIVACY"
+
+          if [ -n "$QUERY" ]; then
+            CMD="$CMD --query \"$QUERY\""
+          fi
+
+          if [ "$DRY_RUN" = "true" ]; then
+            CMD="$CMD --dry-run"
+          else
+            CMD="$CMD --upload"
+          fi
+
+          echo "🚀 Executing News Pipeline: $CMD"
+          eval $CMD
+
+      - name: Commit and Push Persistent News History
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add data/news_history.json 2>/dev/null || true
+
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(news): record published story memory [skip ci]"
+            git pull --rebase origin main || git rebase --abort || true
+            git push origin main || echo "⚠️ News history push skipped."
+          else
+            echo "ℹ️ No news history changes to commit."
+          fi
