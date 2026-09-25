@@ -73,9 +73,12 @@ def load_news_history() -> list:
     """Load previously processed news stories from JSON history."""
     if os.path.exists(NEWS_HISTORY_FILE):
         try:
-            with open(NEWS_HISTORY_FILE, "r", encoding="utf-8") as f:
+            with open(NEWS_HISTORY_FILE, "r", encoding="utf-8-sig") as f:
                 data = json.load(f)
-                return data.get("history", [])
+                if isinstance(data, list):
+                    return data
+                elif isinstance(data, dict):
+                    return data.get("history", [])
         except Exception as e:
             print(f"[news_scraper] Error loading history: {e}")
     return []

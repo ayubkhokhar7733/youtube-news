@@ -38,17 +38,41 @@ _wiki_session.headers.update({
 # Font Helper
 # ---------------------------------------------------------------------------
 
-def _get_font(size: int, bold: bool = False, serif: bool = False) -> ImageFont.ImageFont:
-    """Load standard Windows fonts or fallbacks."""
-    font_names = []
-    if bold:
-        font_names.extend(["arialbd.ttf", "segoeuib.ttf", "seguiemb.ttf", "impact.ttf", "tahomabd.ttf"])
-    elif serif:
-        font_names.extend(["georgia.ttf", "times.ttf", "palabi.ttf"])
-    else:
-        font_names.extend(["arial.ttf", "segoeui.ttf", "tahoma.ttf", "calibri.ttf"])
+def _get_font(size: int, bold: bool = False, serif: bool = False, headline: bool = False) -> ImageFont.ImageFont:
+    """Load bundled TrueType fonts first, then OS system fonts, avoiding bitmap fallbacks."""
+    candidates = []
 
-    for fn in font_names:
+    # 1. Bundled assets fonts (guaranteed to exist in repo)
+    if headline:
+        candidates.append(os.path.join(ASSETS_DIR, "font_headline.ttf"))
+    if bold or headline:
+        candidates.append(os.path.join(ASSETS_DIR, "font_bold.ttf"))
+    candidates.append(os.path.join(ASSETS_DIR, "font.ttf"))
+
+    # 2. Linux / Ubuntu system fonts (GitHub Actions)
+    if bold or headline:
+        candidates.extend([
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+        ])
+    else:
+        candidates.extend([
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        ])
+
+    # 3. Windows system fonts
+    if headline:
+        candidates.extend(["impact.ttf", "arialbd.ttf"])
+    elif bold:
+        candidates.extend(["arialbd.ttf", "segoeuib.ttf", "seguiemb.ttf", "tahomabd.ttf"])
+    elif serif:
+        candidates.extend(["georgia.ttf", "times.ttf", "palabi.ttf"])
+    else:
+        candidates.extend(["arial.ttf", "segoeui.ttf", "tahoma.ttf", "calibri.ttf"])
+
+    for fn in candidates:
         try:
             return ImageFont.truetype(fn, size)
         except Exception:
@@ -159,26 +183,26 @@ def render_tweet_card(
             draw_canvas.line([(0, y), (width, y)], fill=(r, g, b))
 
     # Card dimensions
-    card_w = int(width * 0.90) if is_shorts else min(1300, int(width * 0.78))
-    card_min_h = int(height * 0.45) if is_shorts else min(650, int(height * 0.60))
+    card_w = int(width * 0.90) if is_shorts else min(1440, int(width * 0.78))
+    card_min_h = int(height * 0.45) if is_shorts else min(680, int(height * 0.65))
 
     # Fonts
-    font_name = _get_font(28 if is_shorts else 32, bold=True)
-    font_handle = _get_font(22 if is_shorts else 26)
-    font_text = _get_font(26 if is_shorts else 34)
-    font_meta = _get_font(18 if is_shorts else 22)
-    font_avatar = _get_font(28 if is_shorts else 36, bold=True)
+    font_name = _get_font(28 if is_shorts else 40, bold=True)
+    font_handle = _get_font(22 if is_shorts else 30)
+    font_text = _get_font(26 if is_shorts else 46, bold=True)
+    font_meta = _get_font(18 if is_shorts else 26)
+    font_avatar = _get_font(28 if is_shorts else 44, bold=True)
 
     # Wrap tweet text
-    wrap_width = 38 if is_shorts else 55
+    wrap_width = 38 if is_shorts else 35
     wrapped_lines = textwrap.wrap(tweet_text, width=wrap_width)
-    line_spacing = 14 if is_shorts else 18
+    line_spacing = 14 if is_shorts else 22
     text_sample_bbox = font_text.getbbox("Ay")
     line_height = (text_sample_bbox[3] - text_sample_bbox[1]) + line_spacing
     total_text_h = len(wrapped_lines) * line_height
 
     # Dynamic card height
-    card_h = max(card_min_h, total_text_h + (240 if is_shorts else 280))
+    card_h = max(card_min_h, total_text_h + (240 if is_shorts else 320))
     card_x = (width - card_w) // 2
     card_y = (height - card_h) // 2
 
@@ -196,11 +220,11 @@ def render_tweet_card(
         width=2,
     )
 
-    pad_x = 40 if is_shorts else 55
-    curr_y = 40 if is_shorts else 50
+    pad_x = 40 if is_shorts else 60
+    curr_y = 40 if is_shorts else 55
 
     # Draw Avatar circle with author initials
-    avatar_size = 64 if is_shorts else 76
+    avatar_size = 64 if is_shorts else 92
     avatar_img = Image.new("RGBA", (avatar_size, avatar_size), (0, 0, 0, 0))
     avatar_draw = ImageDraw.Draw(avatar_img)
     avatar_draw.ellipse([(0, 0), (avatar_size, avatar_size)], fill=avatar_color)
@@ -213,30 +237,30 @@ def render_tweet_card(
     card_img.paste(avatar_img, (pad_x, curr_y), avatar_img)
 
     # Author Name + Verified Badge
-    header_x = pad_x + avatar_size + 20
+    header_x = pad_x + avatar_size + (20 if is_shorts else 25)
     card_draw.text((header_x, curr_y + 4), author_name, font=font_name, fill=(255, 255, 255))
     nbox = font_name.getbbox(author_name)
     name_w = nbox[2] - nbox[0]
 
     if is_verified:
         # Verified Badge icon
-        badge_x = header_x + name_w + 10
-        badge_y = curr_y + (8 if is_shorts else 10)
-        badge_size = 20 if is_shorts else 24
+        badge_x = header_x + name_w + 12
+        badge_y = curr_y + (8 if is_shorts else 12)
+        badge_size = 20 if is_shorts else 28
         card_draw.ellipse(
             [(badge_x, badge_y), (badge_x + badge_size, badge_y + badge_size)],
             fill=(29, 155, 240),
         )
-        card_draw.text((badge_x + 4, badge_y + 1), "✓", font=_get_font(14 if is_shorts else 16, bold=True), fill="white")
+        card_draw.text((badge_x + (4 if is_shorts else 6), badge_y + (1 if is_shorts else 2)), "✓", font=_get_font(14 if is_shorts else 18, bold=True), fill="white")
 
     # Handle
-    card_draw.text((header_x, curr_y + (38 if is_shorts else 44)), handle, font=font_handle, fill=(139, 152, 165))
+    card_draw.text((header_x, curr_y + (38 if is_shorts else 50)), handle, font=font_handle, fill=(139, 152, 165))
 
-    # X / Twitter Bird Logo in top right
-    x_logo_x = card_w - (pad_x + 35)
-    card_draw.text((x_logo_x, curr_y + 6), "𝕏", font=_get_font(32 if is_shorts else 38, bold=True), fill=(255, 255, 255))
+    # X / Twitter Logo in top right
+    x_logo_x = card_w - (pad_x + 40)
+    card_draw.text((x_logo_x, curr_y + 4), "X", font=_get_font(28 if is_shorts else 36, bold=True), fill=(255, 255, 255))
 
-    curr_y += avatar_size + (28 if is_shorts else 36)
+    curr_y += avatar_size + (28 if is_shorts else 40)
 
     # Draw Tweet Narration Text
     for line in wrapped_lines:
@@ -244,16 +268,16 @@ def render_tweet_card(
         curr_y += line_height
 
     # Divider line
-    curr_y += 15
+    curr_y += 18
     card_draw.line([(pad_x, curr_y), (card_w - pad_x, curr_y)], fill=(56, 68, 77), width=1)
-    curr_y += 20
+    curr_y += 22
 
     # Timestamp & Engagement footer
     footer_text = f"{timestamp} · Verified News Wire"
     card_draw.text((pad_x, curr_y), footer_text, font=font_meta, fill=(139, 152, 165))
 
-    metrics_text = "💬 8.4K    🔁 24.1K    ❤️ 112K    🔖 15K"
-    card_draw.text((pad_x, curr_y + (28 if is_shorts else 34)), metrics_text, font=font_meta, fill=(113, 118, 123))
+    metrics_text = "8.4K Reposts    24.1K Quotes    112K Likes    15K Bookmarks"
+    card_draw.text((pad_x, curr_y + (28 if is_shorts else 38)), metrics_text, font=font_meta, fill=(113, 118, 123))
 
     # Paste Card onto main canvas
     canvas.paste(card_img, (card_x, card_y), card_img)
@@ -293,20 +317,20 @@ def render_headline_card(
             b = int(28 + 12 * ratio)
             draw_canvas.line([(0, y), (width, y)], fill=(r, g, b))
 
-    card_w = int(width * 0.92) if is_shorts else min(1360, int(width * 0.82))
+    card_w = int(width * 0.92) if is_shorts else min(1440, int(width * 0.80))
     
-    font_pub = _get_font(28 if is_shorts else 36, bold=True)
-    font_date = _get_font(18 if is_shorts else 22)
-    font_headline = _get_font(28 if is_shorts else 38, bold=True)
-    font_badge = _get_font(18 if is_shorts else 22, bold=True)
+    font_pub = _get_font(28 if is_shorts else 44, bold=True)
+    font_date = _get_font(18 if is_shorts else 26)
+    font_headline = _get_font(28 if is_shorts else 50, bold=True)
+    font_badge = _get_font(18 if is_shorts else 26, bold=True)
 
-    header_h = 75 if is_shorts else 90
-    pad_x = 35 if is_shorts else 55
+    header_h = 75 if is_shorts else 100
+    pad_x = 35 if is_shorts else 60
 
     # Wrapped Headline lines first to compute exact dynamic card height
-    wrap_width = 30 if is_shorts else 46
+    wrap_width = 30 if is_shorts else 34
     lines = textwrap.wrap(headline, width=wrap_width)
-    hline_spacing = 16 if is_shorts else 22
+    hline_spacing = 16 if is_shorts else 24
     sample_bbox = font_headline.getbbox("Ay")
     lh = (sample_bbox[3] - sample_bbox[1]) + hline_spacing
     total_text_h = len(lines) * lh
@@ -317,7 +341,7 @@ def render_headline_card(
     pw, ph = pbbox[2] - pbbox[0], pbbox[3] - pbbox[1]
 
     # Exact dynamic card height (no blank void!)
-    card_h = header_h + 30 + (ph + 16) + 25 + total_text_h + (75 if is_shorts else 85)
+    card_h = header_h + 30 + (ph + 16) + 25 + total_text_h + (75 if is_shorts else 95)
     card_x = (width - card_w) // 2
     card_y = (height - card_h) // 2 - (40 if is_shorts else 0)
 
@@ -657,7 +681,7 @@ def render_broadcast_ticker_overlay(
 
     else:
         # For Landscape (16:9): Sleek bottom TV newsroom ticker bar
-        bar_h = 80
+        bar_h = 88
         bar_y = height - bar_h - 20
         bar_w = width
 
@@ -667,25 +691,25 @@ def render_broadcast_ticker_overlay(
         draw.rectangle([(0, bar_y), (bar_w, bar_y + 4)], fill=(220, 38, 38, 255))
 
         # Red Left Badge
-        font_cat = _get_font(28, bold=True)
+        font_cat = _get_font(30, bold=True)
         cat_str = category_label.upper()
         cbbox = font_cat.getbbox(cat_str)
         cw, ch = cbbox[2] - cbbox[0], cbbox[3] - cbbox[1]
-        badge_w = max(340, cw + 70)
+        badge_w = max(360, cw + 75)
         draw.rectangle([(0, bar_y + 4), (badge_w, bar_y + bar_h)], fill=(220, 38, 38, 255))
 
         dot_r = 6
         dot_cy = bar_y + 4 + (bar_h - 4) // 2
         dot_cx = 35
         draw.ellipse([(dot_cx - dot_r, dot_cy - dot_r), (dot_cx + dot_r, dot_cy + dot_r)], fill=(255, 255, 255, 255))
-        draw.text((dot_cx + 16, bar_y + 24), cat_str, font=font_cat, fill="white")
+        draw.text((dot_cx + 18, bar_y + 26), cat_str, font=font_cat, fill="white")
 
         # Running ticker headline
-        font_txt = _get_font(28, bold=True)
+        font_txt = _get_font(30, bold=True)
         display_txt = headline_text.upper()
-        if len(display_txt) > 85:
-            display_txt = display_txt[:82] + "..."
-        draw.text((badge_w + 35, bar_y + 24), display_txt, font=font_txt, fill=(255, 255, 255))
+        if len(display_txt) > 82:
+            display_txt = display_txt[:79] + "..."
+        draw.text((badge_w + 35, bar_y + 26), display_txt, font=font_txt, fill=(255, 255, 255))
 
     out_path = os.path.join(TEMP_DIR, f"ticker_overlay_{abs(hash(headline_text)) % 100000}.png")
     overlay.save(out_path, format="PNG")
@@ -706,7 +730,7 @@ def render_source_badge_overlay(
     draw = ImageDraw.Draw(overlay)
     is_shorts = width < height
 
-    font = _get_font(18 if is_shorts else 22, bold=True)
+    font = _get_font(18 if is_shorts else 26, bold=True)
     text = f"SOURCE: {source_name.upper()}"
     bbox = font.getbbox(text)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]

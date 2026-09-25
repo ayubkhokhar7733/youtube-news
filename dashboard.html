@@ -355,6 +355,10 @@
     <!-- Custom Search / Dispatch -->
     <div class="custom-box">
       <input type="text" id="customQuery" class="custom-input" placeholder="Type or paste any custom breaking topic to produce immediately...">
+      <select id="formatSelector" style="background: #090d16; border: 1px solid #27354f; color: white; padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;">
+        <option value="landscape" selected>🖥️ Long Form (16:9 - 120s)</option>
+        <option value="shorts">📱 Shorts (9:16 - 45s)</option>
+      </select>
       <button class="btn-dispatch" onclick="dispatchCustomTopic()">
         ⚡ Produce Video
       </button>
@@ -517,6 +521,9 @@
 
       showToast(`🚀 Launching video generation for: ${title.slice(0, 30)}...`);
 
+      const fmt = document.getElementById("formatSelector") ? document.getElementById("formatSelector").value : "landscape";
+      const dur = fmt === "landscape" ? "120" : "45";
+
       try {
         const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/news_publish.yml/dispatches`, {
           method: "POST",
@@ -530,7 +537,8 @@
             inputs: {
               category: cat,
               query: title,
-              format: "shorts",
+              format: fmt,
+              duration: dur,
               privacy: "public"
             }
           })
