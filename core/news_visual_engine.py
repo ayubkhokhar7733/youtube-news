@@ -183,28 +183,28 @@ def render_tweet_card(
             draw_canvas.line([(0, y), (width, y)], fill=(r, g, b))
 
     # Card dimensions
-    card_w = int(width * 0.90) if is_shorts else min(1440, int(width * 0.78))
-    card_min_h = int(height * 0.45) if is_shorts else min(680, int(height * 0.65))
+    card_w = int(width * 0.92) if is_shorts else min(1440, int(width * 0.78))
+    card_min_h = int(height * 0.42) if is_shorts else min(680, int(height * 0.65))
 
-    # Fonts
-    font_name = _get_font(28 if is_shorts else 40, bold=True)
-    font_handle = _get_font(22 if is_shorts else 30)
-    font_text = _get_font(26 if is_shorts else 46, bold=True)
-    font_meta = _get_font(18 if is_shorts else 26)
-    font_avatar = _get_font(28 if is_shorts else 44, bold=True)
+    # Fonts (Senior-friendly large typography for both Shorts and Landscape)
+    font_name = _get_font(36 if is_shorts else 40, bold=True)
+    font_handle = _get_font(26 if is_shorts else 30)
+    font_text = _get_font(38 if is_shorts else 46, bold=True)
+    font_meta = _get_font(22 if is_shorts else 26)
+    font_avatar = _get_font(38 if is_shorts else 44, bold=True)
 
     # Wrap tweet text
-    wrap_width = 38 if is_shorts else 35
+    wrap_width = 28 if is_shorts else 35
     wrapped_lines = textwrap.wrap(tweet_text, width=wrap_width)
-    line_spacing = 14 if is_shorts else 22
+    line_spacing = 18 if is_shorts else 22
     text_sample_bbox = font_text.getbbox("Ay")
     line_height = (text_sample_bbox[3] - text_sample_bbox[1]) + line_spacing
     total_text_h = len(wrapped_lines) * line_height
 
     # Dynamic card height
-    card_h = max(card_min_h, total_text_h + (240 if is_shorts else 320))
+    card_h = max(card_min_h, total_text_h + (280 if is_shorts else 320))
     card_x = (width - card_w) // 2
-    card_y = (height - card_h) // 2
+    card_y = (height - card_h) // 2 + (30 if is_shorts else 0)
 
     # Draw Card Background (Dark theme with subtle rounded border)
     card_img = Image.new("RGBA", (card_w, card_h), (21, 32, 43, 255))
@@ -220,11 +220,11 @@ def render_tweet_card(
         width=2,
     )
 
-    pad_x = 40 if is_shorts else 60
-    curr_y = 40 if is_shorts else 55
+    pad_x = 45 if is_shorts else 60
+    curr_y = 45 if is_shorts else 55
 
     # Draw Avatar circle with author initials
-    avatar_size = 64 if is_shorts else 92
+    avatar_size = 80 if is_shorts else 92
     avatar_img = Image.new("RGBA", (avatar_size, avatar_size), (0, 0, 0, 0))
     avatar_draw = ImageDraw.Draw(avatar_img)
     avatar_draw.ellipse([(0, 0), (avatar_size, avatar_size)], fill=avatar_color)
@@ -237,7 +237,7 @@ def render_tweet_card(
     card_img.paste(avatar_img, (pad_x, curr_y), avatar_img)
 
     # Author Name + Verified Badge
-    header_x = pad_x + avatar_size + (20 if is_shorts else 25)
+    header_x = pad_x + avatar_size + (22 if is_shorts else 25)
     card_draw.text((header_x, curr_y + 4), author_name, font=font_name, fill=(255, 255, 255))
     nbox = font_name.getbbox(author_name)
     name_w = nbox[2] - nbox[0]
@@ -245,22 +245,22 @@ def render_tweet_card(
     if is_verified:
         # Verified Badge icon
         badge_x = header_x + name_w + 12
-        badge_y = curr_y + (8 if is_shorts else 12)
-        badge_size = 20 if is_shorts else 28
+        badge_y = curr_y + (10 if is_shorts else 12)
+        badge_size = 26 if is_shorts else 28
         card_draw.ellipse(
             [(badge_x, badge_y), (badge_x + badge_size, badge_y + badge_size)],
             fill=(29, 155, 240),
         )
-        card_draw.text((badge_x + (4 if is_shorts else 6), badge_y + (1 if is_shorts else 2)), "✓", font=_get_font(14 if is_shorts else 18, bold=True), fill="white")
+        card_draw.text((badge_x + 6, badge_y + 2), "✓", font=_get_font(16 if is_shorts else 18, bold=True), fill="white")
 
     # Handle
-    card_draw.text((header_x, curr_y + (38 if is_shorts else 50)), handle, font=font_handle, fill=(139, 152, 165))
+    card_draw.text((header_x, curr_y + (46 if is_shorts else 50)), handle, font=font_handle, fill=(139, 152, 165))
 
     # X / Twitter Logo in top right
     x_logo_x = card_w - (pad_x + 40)
-    card_draw.text((x_logo_x, curr_y + 4), "X", font=_get_font(28 if is_shorts else 36, bold=True), fill=(255, 255, 255))
+    card_draw.text((x_logo_x, curr_y + 4), "X", font=_get_font(32 if is_shorts else 36, bold=True), fill=(255, 255, 255))
 
-    curr_y += avatar_size + (28 if is_shorts else 40)
+    curr_y += avatar_size + (34 if is_shorts else 40)
 
     # Draw Tweet Narration Text
     for line in wrapped_lines:
@@ -276,8 +276,8 @@ def render_tweet_card(
     footer_text = f"{timestamp} · Verified News Wire"
     card_draw.text((pad_x, curr_y), footer_text, font=font_meta, fill=(139, 152, 165))
 
-    metrics_text = "8.4K Reposts    24.1K Quotes    112K Likes    15K Bookmarks"
-    card_draw.text((pad_x, curr_y + (28 if is_shorts else 38)), metrics_text, font=font_meta, fill=(113, 118, 123))
+    metrics_text = "8.4K Reposts    24.1K Quotes    112K Likes"
+    card_draw.text((pad_x, curr_y + (34 if is_shorts else 38)), metrics_text, font=font_meta, fill=(113, 118, 123))
 
     # Paste Card onto main canvas
     canvas.paste(card_img, (card_x, card_y), card_img)
@@ -319,18 +319,18 @@ def render_headline_card(
 
     card_w = int(width * 0.92) if is_shorts else min(1440, int(width * 0.80))
     
-    font_pub = _get_font(28 if is_shorts else 44, bold=True)
-    font_date = _get_font(18 if is_shorts else 26)
-    font_headline = _get_font(28 if is_shorts else 50, bold=True)
-    font_badge = _get_font(18 if is_shorts else 26, bold=True)
+    font_pub = _get_font(34 if is_shorts else 44, bold=True)
+    font_date = _get_font(22 if is_shorts else 26)
+    font_headline = _get_font(42 if is_shorts else 50, bold=True)
+    font_badge = _get_font(22 if is_shorts else 26, bold=True)
 
-    header_h = 75 if is_shorts else 100
-    pad_x = 35 if is_shorts else 60
+    header_h = 88 if is_shorts else 100
+    pad_x = 42 if is_shorts else 60
 
     # Wrapped Headline lines first to compute exact dynamic card height
-    wrap_width = 30 if is_shorts else 34
+    wrap_width = 24 if is_shorts else 34
     lines = textwrap.wrap(headline, width=wrap_width)
-    hline_spacing = 16 if is_shorts else 24
+    hline_spacing = 20 if is_shorts else 24
     sample_bbox = font_headline.getbbox("Ay")
     lh = (sample_bbox[3] - sample_bbox[1]) + hline_spacing
     total_text_h = len(lines) * lh
@@ -341,9 +341,9 @@ def render_headline_card(
     pw, ph = pbbox[2] - pbbox[0], pbbox[3] - pbbox[1]
 
     # Exact dynamic card height (no blank void!)
-    card_h = header_h + 30 + (ph + 16) + 25 + total_text_h + (75 if is_shorts else 95)
+    card_h = header_h + 30 + (ph + 16) + 25 + total_text_h + (85 if is_shorts else 95)
     card_x = (width - card_w) // 2
-    card_y = (height - card_h) // 2 - (40 if is_shorts else 0)
+    card_y = (height - card_h) // 2 + (30 if is_shorts else 0)
 
     # Sleek dark-slate card for high contrast & modern broadcast look
     card_img = Image.new("RGBA", (card_w, card_h), (21, 27, 38, 255))
@@ -541,20 +541,47 @@ def _download_and_frame_url(photo_url: str, entity_name: str, target_w: int, tar
             target_ratio = target_w / target_h
             img_ratio = rw / rh
 
-            if img_ratio > target_ratio:
-                new_h = target_h
-                new_w = int(rh * target_ratio)
-                left = (rw - new_w) // 2
-                cropped = raw_im.crop((left, 0, left + new_w, rh))
-            else:
-                new_w = rw
-                new_h = int(rw / target_ratio)
-                top = max(0, int((rh - new_h) * 0.20))
-                cropped = raw_im.crop((0, top, rw, min(rh, top + new_h)))
+            if target_ratio > 1.3 and img_ratio < 0.95:
+                # Vertical portrait (e.g. official headshot) on a 16:9 landscape canvas:
+                # Preserve full head & shoulders on the right-center over a dark blurred studio backdrop
+                bg = raw_im.resize((target_w, target_h), Image.LANCZOS).filter(ImageFilter.GaussianBlur(radius=38))
+                bg = ImageEnhance.Brightness(bg).enhance(0.28)
+                framed = bg.convert("RGBA")
 
-            framed = cropped.resize((target_w, target_h), Image.LANCZOS)
-            framed = ImageEnhance.Contrast(framed).enhance(1.15)
-            framed = ImageEnhance.Sharpness(framed).enhance(1.20)
+                fg_h = int(target_h * 1.08)
+                fg_w = int(fg_h * img_ratio)
+                fg = raw_im.resize((fg_w, fg_h), Image.LANCZOS)
+                fg = ImageEnhance.Contrast(fg).enhance(1.14)
+                fg = ImageEnhance.Sharpness(fg).enhance(1.18)
+
+                # Feather left & right edges of the portrait so it blends seamlessly into the dark backdrop
+                mask = Image.new("L", (fg_w, fg_h), 255)
+                m_draw = ImageDraw.Draw(mask)
+                feather = max(24, int(fg_w * 0.12))
+                for x in range(feather):
+                    alpha = int(255 * (x / feather))
+                    m_draw.line([(x, 0), (x, fg_h)], fill=alpha)
+                    m_draw.line([(fg_w - 1 - x, 0), (fg_w - 1 - x, fg_h)], fill=alpha)
+
+                paste_x = max(0, min(target_w - fg_w, int(target_w * 0.64) - fg_w // 2))
+                paste_y = -int( target_h * 0.03 )
+                framed.paste(fg, (paste_x, paste_y), mask)
+                framed = framed.convert("RGB")
+            else:
+                if img_ratio > target_ratio:
+                    new_h = target_h
+                    new_w = int(rh * target_ratio)
+                    left = (rw - new_w) // 2
+                    cropped = raw_im.crop((left, 0, left + new_w, rh))
+                else:
+                    new_w = rw
+                    new_h = int(rw / target_ratio)
+                    top = max(0, int((rh - new_h) * 0.18))
+                    cropped = raw_im.crop((0, top, rw, min(rh, top + new_h)))
+
+                framed = cropped.resize((target_w, target_h), Image.LANCZOS)
+                framed = ImageEnhance.Contrast(framed).enhance(1.15)
+                framed = ImageEnhance.Sharpness(framed).enhance(1.20)
 
             framed = _apply_cinematic_gradient_and_badge(
                 framed, target_w, target_h, "WIKIMEDIA COMMONS / VERIFIED ARCHIVE"
@@ -572,50 +599,203 @@ BANNED_IMAGE_KEYWORDS = [
     "grave", "tomb", "cemetery", "burial", "monument", "memorial",
     "poll", "chart", "diagram", "map", "graph", "drawing", "illustration",
     "signature", "seal", "flag of", "coat of arms", "icon", "logo", "caricature",
-    "headstone", "marker", "crypt", "mausoleum", "coin", "stamp", "medal"
+    "headstone", "marker", "crypt", "mausoleum", "coin", "stamp", "medal",
+    "st. john", "st_john", "bible", "church", "painting", "canvas", "oil_on",
+    "19th", "18th", "museum", "gallery", "uss_", "uss ", "naval", "frigate",
+    "destroyer", "radar", "antenna", "mast", "barron", "tiffany", "ai-generated",
+    "jesus", "cartoon", "sketch", "statue", "bust", "plaque", "book_cover"
 ]
+
+KNOWN_ENTITY_WIKI_TITLES = {
+    "trump": ["Donald_Trump", "The_White_House", "Oval_Office", "Air_Force_One", "Mar-a-Lago"],
+    "white house": ["The_White_House", "James_S._Brady_Press_Briefing_Room", "Oval_Office", "Donald_Trump"],
+    "congress": ["United_States_Capitol", "United_States_Senate", "United_States_House_of_Representatives", "Mike_Johnson", "John_Thune"],
+    "senate": ["United_States_Senate", "United_States_Capitol", "John_Thune", "Chuck_Schumer"],
+    "house": ["United_States_House_of_Representatives", "United_States_Capitol", "Mike_Johnson"],
+    "supreme court": ["Supreme_Court_of_the_United_States", "John_Roberts"],
+    "court": ["Supreme_Court_of_the_United_States", "United_States_Department_of_Justice"],
+    "doj": ["United_States_Department_of_Justice", "Pam_Bondi"],
+    "justice": ["United_States_Department_of_Justice", "Supreme_Court_of_the_United_States"],
+    "fbi": ["Federal_Bureau_of_Investigation", "Kash_Patel"],
+    "pentagon": ["The_Pentagon", "Pete_Hegseth"],
+    "military": ["The_Pentagon", "United_States_Armed_Forces"],
+    "musk": ["Elon_Musk", "SpaceX", "Tesla,_Inc."],
+    "elon": ["Elon_Musk", "Tesla,_Inc.", "SpaceX"],
+    "tesla": ["Tesla,_Inc.", "Elon_Musk"],
+    "spacex": ["SpaceX", "Elon_Musk"],
+    "vance": ["JD_Vance", "The_White_House"],
+    "rubio": ["Marco_Rubio", "United_States_Department_of_State"],
+    "hegseth": ["Pete_Hegseth", "The_Pentagon"],
+    "bondi": ["Pam_Bondi", "United_States_Department_of_Justice"],
+    "rfk": ["Robert_F._Kennedy_Jr."],
+    "kennedy": ["Robert_F._Kennedy_Jr."],
+    "fed": ["Jerome_Powell", "Federal_Reserve"],
+    "powell": ["Jerome_Powell", "Federal_Reserve"],
+    "tariff": ["Donald_Trump", "New_York_Stock_Exchange", "Container_ship"],
+    "economy": ["New_York_Stock_Exchange", "Federal_Reserve", "Wall_Street"],
+    "china": ["Xi_Jinping", "Great_Hall_of_the_People", "Beijing"],
+    "xi": ["Xi_Jinping", "Great_Hall_of_the_People"],
+    "russia": ["Vladimir_Putin", "Moscow_Kremlin"],
+    "putin": ["Vladimir_Putin", "Moscow_Kremlin"],
+    "ukraine": ["Volodymyr_Zelenskyy", "Kyiv"],
+    "zelensky": ["Volodymyr_Zelenskyy"],
+    "israel": ["Benjamin_Netanyahu", "Knesset"],
+    "netanyahu": ["Benjamin_Netanyahu", "United_Nations_General_Assembly"],
+    "iran": ["Tehran", "United_Nations_Security_Council"],
+    "openai": ["Sam_Altman", "OpenAI"],
+    "altman": ["Sam_Altman", "OpenAI"],
+    "chatgpt": ["Sam_Altman", "OpenAI"],
+    "anthropic": ["Dario_Amodei"],
+    "claude": ["Dario_Amodei"],
+    "google": ["Sundar_Pichai", "Googleplex"],
+    "meta": ["Mark_Zuckerberg", "Meta_Platforms"],
+    "zuckerberg": ["Mark_Zuckerberg", "Meta_Platforms"],
+    "apple": ["Tim_Cook", "Apple_Park"],
+    "microsoft": ["Satya_Nadella", "Bill_Gates"],
+    "gates": ["Bill_Gates", "Microsoft"],
+    "nvidia": ["Jensen_Huang", "Nvidia"],
+    "huang": ["Jensen_Huang", "Nvidia"],
+}
 
 
 def fetch_entity_photo_bank(entity_queries: list, target_w: int, target_h: int, max_photos: int = 24) -> list:
     """
-    Searches Wikipedia for multiple queries and returns a list of unique, framed photo paths.
-    Guarantees rich variety with zero duplicate images and strict filtering of irrelevant subjects.
+    Builds a diverse, story-specific bank of framed high-resolution photos:
+    1. Exact Wikipedia portrait lookups (`titles=...&prop=pageimages`) for known figures/institutions.
+    2. Filtered Wikipedia search results for story-specific entities.
+    3. High-resolution Pexels & Pixabay stock photography matching the story's visual themes.
+    Shuffles supporting imagery so no two videos ever repeat the same photo sequence.
     """
+    import random
+    from core.media_searcher import search_images_pexels, search_images_pixabay
+
     seen_urls = set()
-    results = []
+    lead_photos = []
+    supporting_photos = []
+
+    combined_q_text = " ".join(entity_queries).lower()
+
+    # 1. Resolve exact Wikipedia titles from queries
+    exact_titles = []
     for q in entity_queries:
-        if len(results) >= max_photos:
+        ql = q.lower()
+        for kw, wiki_list in KNOWN_ENTITY_WIKI_TITLES.items():
+            if kw in ql:
+                for wt in wiki_list:
+                    if wt not in exact_titles:
+                        exact_titles.append(wt)
+
+    # Always ensure fallback institutional diversity if exact_titles is small
+    default_institutions = [
+        "The_White_House", "United_States_Capitol", "Supreme_Court_of_the_United_States",
+        "New_York_Stock_Exchange", "The_Pentagon", "United_Nations_General_Assembly"
+    ]
+    random.shuffle(default_institutions)
+    for inst in default_institutions:
+        if inst not in exact_titles:
+            exact_titles.append(inst)
+
+    # Batch-fetch exact Wikipedia pageimages (up to 10 titles at once)
+    for i in range(0, min(len(exact_titles), 20), 8):
+        if len(lead_photos) + len(supporting_photos) >= max_photos:
             break
-        clean_q = urllib.parse.quote(q)
-        api_url = f"https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch={clean_q}&gsrlimit=5&prop=pageimages&pithumbsize=1200&format=json"
+        batch = exact_titles[i:i + 8]
+        titles_param = "|".join(urllib.parse.quote(t) for t in batch)
+        api_url = f"https://en.wikipedia.org/w/api.php?action=query&titles={titles_param}&prop=pageimages&pithumbsize=1280&format=json"
         try:
             resp = _wiki_session.get(api_url, timeout=8)
             if resp.status_code == 200:
                 pages = resp.json().get("query", {}).get("pages", {})
+                # Preserve batch order so primary subject is first
+                title_to_src = {}
                 for pid, pdata in pages.items():
+                    ptitle = pdata.get("title", "")
+                    thumb = pdata.get("thumbnail", {})
+                    src = thumb.get("source")
+                    if not src or src.endswith(".svg") or src in seen_urls:
+                        continue
+                    if thumb.get("width", 0) < 350 or thumb.get("height", 0) < 250:
+                        continue
+                    src_lower = src.lower()
+                    if any(kw in ptitle.lower() or kw in src_lower for kw in BANNED_IMAGE_KEYWORDS):
+                        continue
+                    title_to_src[ptitle.replace(" ", "_").lower()] = (src, ptitle)
+
+                for req_t in batch:
+                    match = title_to_src.get(req_t.lower())
+                    if match:
+                        src, ptitle = match
+                        seen_urls.add(src)
+                        framed = _download_and_frame_url(src, ptitle, target_w, target_h)
+                        if framed and os.path.exists(framed):
+                            if not lead_photos:
+                                lead_photos.append(framed)
+                            else:
+                                supporting_photos.append(framed)
+        except Exception as e:
+            print(f"[news_visual_engine] Exact title batch error: {e}")
+
+    # 2. Fetch Pexels & Pixabay high-res news/context photos for visual variety
+    stock_queries = [q for q in entity_queries[:4] if len(q) > 3]
+    for sq in stock_queries:
+        if len(lead_photos) + len(supporting_photos) >= max_photos:
+            break
+        try:
+            urls = search_images_pexels(sq, per_page=4) or search_images_pixabay(sq, per_page=4)
+            if urls:
+                random.shuffle(urls)
+                for u in urls[:2]:
+                    if u in seen_urls:
+                        continue
+                    seen_urls.add(u)
+                    framed = _download_and_frame_url(u, sq, target_w, target_h)
+                    if framed and os.path.exists(framed):
+                        supporting_photos.append(framed)
+        except Exception as e:
+            print(f"[news_visual_engine] Stock photo search error for '{sq}': {e}")
+
+    # 3. Filtered Wikipedia search for any remaining story-specific entities
+    for q in entity_queries[:5]:
+        if len(lead_photos) + len(supporting_photos) >= max_photos:
+            break
+        clean_q = urllib.parse.quote(q)
+        api_url = f"https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch={clean_q}&gsrlimit=6&prop=pageimages&pithumbsize=1280&format=json"
+        try:
+            resp = _wiki_session.get(api_url, timeout=8)
+            if resp.status_code == 200:
+                pages = list(resp.json().get("query", {}).get("pages", {}).values())
+                random.shuffle(pages)
+                for pdata in pages:
                     page_title = pdata.get("title", "").lower()
                     thumb = pdata.get("thumbnail", {})
                     src = thumb.get("source")
                     if not src or src.endswith(".svg") or src in seen_urls:
                         continue
-                    
+
                     src_lower = src.lower()
                     if any(kw in page_title or kw in src_lower for kw in BANNED_IMAGE_KEYWORDS):
                         continue
-                    
-                    # Ensure minimum resolution (avoid tiny icons/stamps)
-                    if thumb.get("width", 0) < 350 or thumb.get("height", 0) < 250:
+                    # Avoid unrelated Obama or Jensen Huang photos unless queried
+                    if "obama" in (page_title + src_lower) and "obama" not in combined_q_text:
+                        continue
+                    if "huang" in (page_title + src_lower) and "nvidia" not in combined_q_text and "huang" not in combined_q_text:
+                        continue
+
+                    if thumb.get("width", 0) < 400 or thumb.get("height", 0) < 280:
                         continue
 
                     seen_urls.add(src)
                     framed = _download_and_frame_url(src, q, target_w, target_h)
                     if framed and os.path.exists(framed):
-                        results.append(framed)
-                        if len(results) >= max_photos:
+                        supporting_photos.append(framed)
+                        if len(lead_photos) + len(supporting_photos) >= max_photos:
                             break
         except Exception as e:
             print(f"[news_visual_engine] Photo bank query error for '{q}': {e}")
-    return results
+
+    # Shuffle supporting photos so every Short/Video has a unique visual sequence
+    random.shuffle(supporting_photos)
+    return lead_photos + supporting_photos
 
 
 # ---------------------------------------------------------------------------
@@ -629,55 +809,77 @@ def render_broadcast_ticker_overlay(
     height: int = 1080,
 ) -> str:
     """
-    Renders a transparent PNG overlay containing the broadcast lower-third news ticker.
-    Returns path to overlay PNG.
+    Renders a transparent PNG overlay containing the broadcast news banner/ticker.
+    For Shorts (9:16): Renders a large, senior-friendly 2-line upper-third hook banner
+    so the story headline is immediately readable in both the player and the Shorts grid.
     """
     overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
     is_shorts = width < height
 
     if is_shorts:
-        # For Shorts (9:16): Upper-third banner (safe from bottom title & right buttons)
-        bar_h = 110
-        bar_y = int(height * 0.14)
+        # For Shorts (1080x1920): High-impact 2-line upper-third broadcast hook banner
+        font_cat = _get_font(26, bold=True)
+        font_txt = _get_font(42, bold=True, headline=True)
+
+        clean_hl = re.sub(r'\s+', ' ', headline_text).strip().upper()
+        wrapped_hl = textwrap.wrap(clean_hl, width=26)[:2]
+        if not wrapped_hl:
+            wrapped_hl = ["BREAKING NEWS UPDATE"]
+
+        line_h = 52
+        bar_h = 90 + len(wrapped_hl) * line_h + 24
+        bar_y = int(height * 0.065)
         bar_w = int(width * 0.94)
         bar_x = (width - bar_w) // 2
 
-        # Card container
+        # Drop shadow under banner
         draw.rounded_rectangle(
-            [(bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h)],
-            radius=16,
-            fill=(15, 17, 26, 245),
-            outline=(220, 38, 38, 255),
-            width=3,
+            [(bar_x + 4, bar_y + 6), (bar_x + bar_w + 4, bar_y + bar_h + 6)],
+            radius=18,
+            fill=(0, 0, 0, 180),
         )
 
-        font_cat = _get_font(22, bold=True)
-        font_txt = _get_font(26, bold=True)
+        # Sleek dark-navy broadcast container with crimson border
+        draw.rounded_rectangle(
+            [(bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h)],
+            radius=18,
+            fill=(12, 15, 24, 248),
+            outline=(220, 38, 38, 255),
+            width=4,
+        )
 
-        # Red Category Badge
-        cat_badge = category_label.upper()
+        # Red Category Badge Pill
+        clean_cat = category_label.replace("NEWS", "").strip() or "BREAKING"
+        cat_badge = f"GLOBAL PULSE 24 | {clean_cat}".upper()
         cbbox = font_cat.getbbox(cat_badge)
         cw, ch = cbbox[2] - cbbox[0], cbbox[3] - cbbox[1]
 
-        pill_w = cw + 48
-        pill_h = ch + 12
+        pill_w = cw + 54
+        pill_h = ch + 18
+        pill_x = bar_x + 22
+        pill_y = bar_y + 16
         draw.rounded_rectangle(
-            [(bar_x + 16, bar_y + 12), (bar_x + 16 + pill_w, bar_y + 12 + pill_h)],
-            radius=6,
+            [(pill_x, pill_y), (pill_x + pill_w, pill_y + pill_h)],
+            radius=8,
             fill=(220, 38, 38, 255),
         )
-        dot_r = 5
-        dot_cy = bar_y + 12 + pill_h // 2
-        dot_cx = bar_x + 30
+        dot_r = 6
+        dot_cy = pill_y + pill_h // 2
+        dot_cx = pill_x + 20
         draw.ellipse([(dot_cx - dot_r, dot_cy - dot_r), (dot_cx + dot_r, dot_cy + dot_r)], fill=(255, 255, 255, 255))
-        draw.text((dot_cx + 14, bar_y + 14), cat_badge, font=font_cat, fill="white")
+        draw.text((dot_cx + 14, pill_y + 7), cat_badge, font=font_cat, fill="white")
 
-        # Ticker headline text
-        short_txt = headline_text.upper()
-        if len(short_txt) > 52:
-            short_txt = short_txt[:49] + "..."
-        draw.text((bar_x + 20, bar_y + 60), short_txt, font=font_txt, fill=(255, 255, 255))
+        # 2-Line High-Contrast Headline (Line 1 White, Line 2 Vivid Yellow)
+        curr_ty = pill_y + pill_h + 16
+        for idx, line in enumerate(wrapped_hl):
+            color = (255, 255, 255, 255) if idx == 0 else (255, 224, 0, 255)
+            # Crisp black drop shadow
+            for offset in (2, 3):
+                draw.text((bar_x + 24 + offset, curr_ty + offset), line, font=font_txt, fill=(0, 0, 0, 255))
+            draw.text((bar_x + 24, curr_ty), line, font=font_txt, fill=color)
+            curr_ty += line_h
+
 
     else:
         # For Landscape (16:9): Sleek bottom TV newsroom ticker bar

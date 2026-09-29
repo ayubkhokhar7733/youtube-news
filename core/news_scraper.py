@@ -236,10 +236,60 @@ def scrape_reddit_trending(subreddit: str, max_items: int = 10) -> list:
 # High-Level News Aggregator & Story Dossier Builder
 # ---------------------------------------------------------------------------
 
+def _score_story_for_us_audience(cand: dict) -> float:
+    """
+    Scores candidate stories based on real-world channel analytics:
+    Core audience is 60.3% US, 95% aged 55-65+, responding strongly to high-stakes
+    US Politics, White House, Congress, Supreme Court, Economic Policy, and Big Tech power moves.
+    """
+    title_l = cand.get("title", "").lower()
+    summary_l = cand.get("summary", "").lower()
+    source_l = cand.get("source", "").lower()
+    combined = f"{title_l} {summary_l}"
+
+    score = 10.0
+
+    # Tier-1 High-Velocity US Viral Triggers (+6 each)
+    high_velocity = [
+        "trump", "white house", "executive order", "supreme court", "congress",
+        "senate", "house gop", "pentagon", "tariff", "social security", "medicare",
+        "elon musk", "doge", "federal reserve", "interest rate", "billion", "trillion",
+        "china", "iran", "russia", "nato", "border", "deport", "fbi", "doj",
+        "openai", "nvidia", "apple", "microsoft", "google", "meta", "tesla",
+        "breaking", "emergency", "ban", "lawsuit", "investigation", "sanction",
+    ]
+    for kw in high_velocity:
+        if kw in title_l:
+            score += 6.0
+        elif kw in summary_l:
+            score += 2.5
+
+    # Bonus for hard numbers / dollar stakes in headline (+4)
+    if re.search(r'(\$\d+|\d+%|\d+\s*(million|billion|trillion))', title_l):
+        score += 4.5
+
+    # Bonus for top-tier authoritative broadcast/wire sources (+3)
+    top_sources = ["reuters", "associated press", "ap news", "bloomberg", "cnbc", "fox", "cnn", "politico", "wall street journal", "bbc", "axios", "the hill"]
+    if any(s in source_l for s in top_sources):
+        score += 3.5
+
+    # Penalize low-retention academic, campus, local survey, or niche opinion pieces (-8)
+    low_interest = [
+        "university", "college", "campus", "student", "professor", "survey finds",
+        "study suggests", "op-ed", "opinion:", "podcast", "book review", "local school",
+        "city council", "county", "high school",
+    ]
+    for bad in low_interest:
+        if bad in combined:
+            score -= 8.0
+
+    return score
+
+
 def get_trending_story(category: str = "ai", query_override: str = None) -> dict:
     """
     Pulls real-time news candidates, filters against collision history,
-    and returns a clean Story Dossier ready for scriptwriting.
+    scores for US 55-65+ audience virality, and returns a clean Story Dossier.
     """
     category = category.lower()
     if category not in CATEGORY_QUERIES:
@@ -277,6 +327,8 @@ def get_trending_story(category: str = "ai", query_override: str = None) -> dict
         print("[news_scraper] All candidates were recently covered in history. Picking least recent fresh item...")
         fresh_candidates = candidates
 
+    # Rank candidates by US audience virality score
+    fresh_candidates.sort(key=_score_story_for_us_audience, reverse=True)
     selected = fresh_candidates[0]
 
     # Assemble Story Dossier
@@ -292,7 +344,7 @@ def get_trending_story(category: str = "ai", query_override: str = None) -> dict
         "raw_candidate_count": len(candidates),
     }
 
-    print(f"[news_scraper] Selected Story: '{dossier['title']}' (Source: {dossier['primary_source']})")
+    print(f"[news_scraper] Selected Story (Score {_score_story_for_us_audience(selected):.1f}): '{dossier['title']}' (Source: {dossier['primary_source']})")
     return dossier
 
 

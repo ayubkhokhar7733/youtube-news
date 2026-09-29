@@ -102,23 +102,67 @@ async def _edge_tts_generate(text: str, audio_path: str, srt_path: str):
     rate = getattr(config, "VOICE_RATE", "+10%")
     communicate = edge_tts.Communicate(text, voice, rate=rate, boundary="WordBoundary")
     submaker = edge_tts.SubMaker()
-    
+    word_events = []
+
     with open(audio_path, "wb") as audio_file:
         async for chunk in communicate.stream():
             if chunk.get("type") == "audio":
                 audio_file.write(chunk.get("data", b""))
             elif chunk.get("type") in ("SentenceBoundary", "WordBoundary"):
                 submaker.feed(chunk)
+                if chunk.get("type") == "WordBoundary" and chunk.get("text"):
+                    offset_s = float(chunk.get("offset", 0)) / 10_000_000.0
+                    dur_s = float(chunk.get("duration", 0)) / 10_000_000.0
+                    word_events.append({
+                        "text": str(chunk.get("text", "")).strip(),
+                        "start": offset_s,
+                        "end": offset_s + max(0.08, dur_s),
+                    })
 
-    srt_content = submaker.get_srt()
-    
+    # Group single words into 3-4 word broadcast phrases so viewers can read comfortably
+    if word_events:
+        srt_lines = []
+        phrase_words = []
+        phrase_start = 0.0
+        phrase_end = 0.0
+        cue_idx = 1
+
+        for ev in word_events:
+            w = ev["text"]
+            if not w:
+                continue
+            if not phrase_words:
+                phrase_start = ev["start"]
+            phrase_words.append(w)
+            phrase_end = ev["end"]
+
+            current_len = sum(len(x) for x in phrase_words) + len(phrase_words) - 1
+            ends_punct = w[-1] in ".!?,;:"
+            if len(phrase_words) >= 4 or current_len >= 24 or (ends_punct and len(phrase_words) >= 2):
+                srt_lines.append(str(cue_idx))
+                srt_lines.append(f"{_fmt_srt(phrase_start)} --> {_fmt_srt(phrase_end)}")
+                srt_lines.append(" ".join(phrase_words))
+                srt_lines.append("")
+                cue_idx += 1
+                phrase_words = []
+
+        if phrase_words:
+            srt_lines.append(str(cue_idx))
+            srt_lines.append(f"{_fmt_srt(phrase_start)} --> {_fmt_srt(phrase_end)}")
+            srt_lines.append(" ".join(phrase_words))
+            srt_lines.append("")
+
+        srt_content = "\n".join(srt_lines)
+    else:
+        srt_content = submaker.get_srt()
+
     # If SubMaker produced empty SRT, generate fallback SRT from text
     if not srt_content or len(srt_content.strip()) < 10:
         words = text.split()
         total_dur = max(5.0, len(words) / 2.5)
         words_per_sec = len(words) / total_dur
         srt_lines = []
-        chunk_size = 5
+        chunk_size = 4
         for i in range(0, len(words), chunk_size):
             chunk_words = words[i:i + chunk_size]
             start_s = i / words_per_sec

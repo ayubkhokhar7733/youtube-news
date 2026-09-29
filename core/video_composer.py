@@ -624,15 +624,17 @@ def compose_video(scenes, media_items, srt_path, voiceover_path, voiceover_durat
         getattr(config, "SUBTITLE_COLOR", "yellow"), "&H0032DCFF"
     )
     is_landscape = config.VIDEO_WIDTH > config.VIDEO_HEIGHT
-    font_size = 22 if is_landscape else 19
-    # When bottom ticker is present in landscape, elevate subtitles above ticker bar
+    font_size = 20 if is_landscape else 17
+    # Note: FFmpeg subtitles filter uses libass PlayResY=288 virtual coordinates.
+    # MarginV=42 in landscape places subtitles cleanly above the lower-third ticker bar (~15% from bottom).
+    # MarginV=68 in Shorts places subtitles in the lower third (~23% from bottom), clear of faces & YouTube UI.
     if ticker_overlay_path and os.path.exists(ticker_overlay_path):
-        margin_v = 125 if is_landscape else 150
+        margin_v = 42 if is_landscape else 68
     else:
-        margin_v = 55 if is_landscape else 120
+        margin_v = 28 if is_landscape else 62
     sub_style = (
         f"Fontname=Arial,Bold=1,Fontsize={font_size},PrimaryColour={color_hex},"
-        f"OutlineColour=&H00000000,BorderStyle=1,Outline=3,Shadow=0,Alignment=2,MarginV={margin_v}"
+        f"OutlineColour=&H00000000,BorderStyle=1,Outline=3,Shadow=1,Alignment=2,MarginV={margin_v}"
     )
     vf_subtitles = f"subtitles='{escaped_srt}':force_style='{sub_style}'"
 
