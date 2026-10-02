@@ -79,9 +79,25 @@ def main():
             scopes=SCOPES,
         )
     else:
-        print("\nℹ️  client_secrets.json not found in root folder.")
-        client_id = input("Enter your Google OAuth Client ID: ").strip()
-        client_secret = input("Enter your Google OAuth Client Secret: ").strip()
+        # Check if already present in .env
+        env_client_id = ""
+        env_client_secret = ""
+        if os.path.exists(ENV_FILE):
+            with open(ENV_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("YOUTUBE_CLIENT_ID="):
+                        env_client_id = line.split("=", 1)[1].strip()
+                    elif line.startswith("YOUTUBE_CLIENT_SECRET="):
+                        env_client_secret = line.split("=", 1)[1].strip()
+
+        if env_client_id and env_client_secret:
+            print(f"🔑 Loaded Google OAuth credentials directly from .env ({env_client_id[:16]}...)")
+            client_id = env_client_id
+            client_secret = env_client_secret
+        else:
+            print("\nℹ️  client_secrets.json not found in root folder.")
+            client_id = input("Enter your Google OAuth Client ID: ").strip()
+            client_secret = input("Enter your Google OAuth Client Secret: ").strip()
 
         if not client_id or not client_secret:
             print("❌ Client ID and Secret are required to proceed.")
@@ -102,8 +118,8 @@ def main():
         )
 
     print("\n🌐 Opening local browser for Google account authorization...")
-    print("⚠️  Make sure you log in with the Google account that owns or manages the YouTube channel.")
-    print("   If you see a 'Google hasn't verified this app' screen, click 'Advanced' -> 'Go to <app> (unsafe)'.")
+    print("⚠️  IMPORTANT: Log in with the Google account that manages your YouTube channel.")
+    print("   If you see a 'Google hasn't verified this app' warning screen, click 'Advanced' -> 'Go to <app> (unsafe)'.")
 
     # Run local server to capture the OAuth redirect
     credentials = flow.run_local_server(
@@ -129,17 +145,32 @@ def main():
     print(f"YOUTUBE_CLIENT_SECRET={client_secret}")
     print(f"YOUTUBE_REFRESH_TOKEN={refresh_token}")
 
-    print("\n" + "-" * 70)
-    print("📋 For GitHub Actions Deployment:")
-    print("Add these 3 secrets to your GitHub Repository Settings -> Secrets and variables -> Actions:")
-    print("  1. YOUTUBE_CLIENT_ID")
-    print("  2. YOUTUBE_CLIENT_SECRET")
-    print("  3. YOUTUBE_REFRESH_TOKEN")
-    print("-" * 70)
-
     # Save to local .env
     update_env_file(client_id, client_secret, refresh_token)
-    print("\nSetup complete! You can now run `py youtube_uploader.py` or test live uploads.")
+
+    # Attempt automatic sync to GitHub Secrets via gh CLI
+    try:
+        import subprocess
+        print("\n🔄 Syncing new YOUTUBE_REFRESH_TOKEN to GitHub Secrets...")
+        res = subprocess.run(
+            ["gh", "secret", "set", "YOUTUBE_REFRESH_TOKEN", "--body", refresh_token],
+            capture_output=True,
+            text=True,
+        )
+        if res.returncode == 0:
+            print("✅ Successfully updated YOUTUBE_REFRESH_TOKEN in GitHub Repository Secrets!")
+        else:
+            print("⚠️  Could not auto-sync to GitHub Secrets via gh CLI. Please update manually if needed.")
+    except Exception:
+        pass
+
+    print("\n" + "-" * 70)
+    print("💡 CRITICAL: To prevent this token from expiring after 7 days:")
+    print("1. Go to Google Cloud Console: https://console.cloud.google.com/apis/credentials/consent")
+    print("2. Under 'Publishing status', click 'PUBLISH APP' to change status from 'Testing' to 'In production'.")
+    print("   (Personal use apps in Production get permanent tokens that never expire!)")
+    print("-" * 70)
+    print("\nSetup complete! You can now run `py news_pipeline.py` or trigger GitHub Actions.")
 
 
 if __name__ == "__main__":

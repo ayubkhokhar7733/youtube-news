@@ -233,7 +233,7 @@ def generate_metadata(script: dict, topic: str = "", mock: bool = False) -> dict
 
     import config
     config.reload()
-    api_key = config.GROQ_API_KEY
+    api_key = str(config.GROQ_API_KEY or "").strip("\ufeff \r\n\t")
 
     # Use mock fallback if requested or if Groq key is unavailable
     if mock or not api_key or api_key.startswith("gsk_placeholder") or "your_" in api_key:
