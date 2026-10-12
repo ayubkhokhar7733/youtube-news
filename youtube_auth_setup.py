@@ -117,19 +117,69 @@ def main():
             scopes=SCOPES,
         )
 
-    print("\n🌐 Opening local browser for Google account authorization...")
-    print("⚠️  IMPORTANT: Log in with the Google account that manages your YouTube channel.")
-    print("   If you see a 'Google hasn't verified this app' warning screen, click 'Advanced' -> 'Go to <app> (unsafe)'.")
+    import urllib.parse
+    from http.server import HTTPServer, BaseHTTPRequestHandler
 
-    # Run local server to capture the OAuth redirect
-    credentials = flow.run_local_server(
-        port=8080,
+    flow.redirect_uri = "http://localhost:8080/"
+    auth_url, _ = flow.authorization_url(
         prompt="consent",
         access_type="offline",
-        open_browser=True,
+        include_granted_scopes="true",
     )
 
-    refresh_token = credentials.refresh_token
+    with open("AUTH_URL.txt", "w", encoding="utf-8") as f:
+        f.write(auth_url)
+
+    print("\n" + "=" * 75, flush=True)
+    print("🔗 CLICK OR COPY THIS LINK INTO YOUR BROWSER TO AUTHORIZE:", flush=True)
+    print(auth_url, flush=True)
+    print("=" * 75 + "\n", flush=True)
+    print("⚠️  IMPORTANT: Log in with the Google account that manages your YouTube channel.", flush=True)
+    print("   If you see a 'Google hasn't verified this app' warning screen, click 'Advanced' -> 'Go to <app> (unsafe)'.", flush=True)
+    print("   Listening on http://localhost:8080/ for authorization response...\n", flush=True)
+
+    auth_code_holder = {}
+
+    class OAuthCallbackHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            parsed = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(parsed.query)
+            if "code" in params:
+                auth_code_holder["code"] = params["code"][0]
+                self.send_response(200)
+                self.send_header("Content-type", "text/html; charset=utf-8")
+                self.end_headers()
+                html = """
+                <!DOCTYPE html>
+                <html>
+                <head><title>Authorization Successful</title></head>
+                <body style="font-family: Arial, sans-serif; text-align: center; padding: 60px; background: #0f172a; color: #f8fafc;">
+                    <div style="max-width: 520px; margin: 0 auto; background: #1e293b; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); border: 1px solid #334155;">
+                        <h1 style="color: #22c55e; margin-bottom: 12px; font-size: 28px;">✅ Authorization Successful!</h1>
+                        <p style="font-size: 16px; color: #94a3b8; line-height: 1.6;">Your YouTube Channel OAuth credentials have been authorized and saved.</p>
+                        <p style="font-size: 14px; color: #64748b; margin-top: 24px;">You can now safely close this browser tab.</p>
+                    </div>
+                </body>
+                </html>
+                """
+                self.wfile.write(html.encode("utf-8"))
+            else:
+                self.send_response(400)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(b"No authorization code received.")
+
+        def log_message(self, format, *args):
+            pass
+
+    httpd = HTTPServer(("localhost", 8080), OAuthCallbackHandler)
+    while "code" not in auth_code_holder:
+        httpd.handle_request()
+    httpd.server_close()
+
+    auth_code = auth_code_holder["code"]
+    flow.fetch_token(code=auth_code)
+    refresh_token = flow.credentials.refresh_token
 
     if not refresh_token:
         print("\n⚠️  No refresh token returned! This happens if consent was already granted.")

@@ -27,19 +27,28 @@ def generate_voiceover(scenes, max_retries: int = 3):
     audio_path = os.path.join(config.TEMP_DIR, "full_voiceover.mp3")
     srt_path   = os.path.join(config.TEMP_DIR, "subtitles.srt")
 
-    # Try edge-tts with retries
+    # Try edge-tts with voice rotation and retries
+    candidate_voices = [
+        _get_voice(),
+        "en-US-GuyNeural",
+        "en-US-AndrewNeural",
+        "en-US-BrianNeural",
+        "en-US-JennyNeural",
+        "en-US-AriaNeural",
+    ]
     success = False
-    for attempt in range(max_retries):
-        if _try_edge_tts(full_text, audio_path, srt_path):
+    for attempt in range(max(len(candidate_voices), max_retries)):
+        v = candidate_voices[attempt % len(candidate_voices)]
+        if _try_edge_tts(full_text, audio_path, srt_path, voice=v):
             success = True
             break
-        wait = 2 ** attempt
-        print(f"[tts_engine] edge-tts attempt {attempt + 1} failed, retrying in {wait}s...")
+        wait = min(6, 2 ** (attempt % 3))
+        print(f"[tts_engine] edge-tts attempt {attempt + 1} with voice '{v}' failed, retrying in {wait}s...")
         time.sleep(wait)
 
     # Fallback to gTTS if edge-tts keeps failing
     if not success:
-        print("[tts_engine] edge-tts exhausted, trying gTTS fallback...")
+        print("[tts_engine] edge-tts exhausted, engaging resilient gTTS fallback...")
         success = _try_gtts(full_text, audio_path, srt_path, scenes)
 
     if not success:
@@ -79,12 +88,12 @@ def _measure_audio_duration(audio_path: str) -> float:
         return 0.0
 
 
-def _try_edge_tts(text: str, audio_path: str, srt_path: str) -> bool:
+def _try_edge_tts(text: str, audio_path: str, srt_path: str, voice: str = None) -> bool:
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            loop.run_until_complete(_edge_tts_generate(text, audio_path, srt_path))
+            loop.run_until_complete(_edge_tts_generate(text, audio_path, srt_path, voice=voice))
         finally:
             loop.close()
         if os.path.exists(audio_path) and os.path.getsize(audio_path) > 1000:
@@ -94,13 +103,13 @@ def _try_edge_tts(text: str, audio_path: str, srt_path: str) -> bool:
     return False
 
 
-async def _edge_tts_generate(text: str, audio_path: str, srt_path: str):
+async def _edge_tts_generate(text: str, audio_path: str, srt_path: str, voice: str = None):
     import edge_tts
-    voice = _get_voice()
+    chosen_voice = voice or _get_voice()
 
     # Save audio and stream word boundaries simultaneously for microsecond sync
     rate = getattr(config, "VOICE_RATE", "+10%")
-    communicate = edge_tts.Communicate(text, voice, rate=rate, boundary="WordBoundary")
+    communicate = edge_tts.Communicate(text, chosen_voice, rate=rate, boundary="WordBoundary")
     submaker = edge_tts.SubMaker()
     word_events = []
 
@@ -184,23 +193,33 @@ def _try_gtts(text: str, audio_path: str, srt_path: str, scenes: list) -> bool:
         tts = gTTS(text=text, lang="en", slow=False)
         tts.save(audio_path)
 
-        # Build a basic SRT from scene timing estimates
+        words = text.split()
+        if not words:
+            return False
+
+        actual_dur = _measure_audio_duration(audio_path)
+        total_dur = max(5.0, actual_dur if actual_dur > 0 else (len(words) / 2.3))
+        wps = len(words) / total_dur
+
         srt_lines = []
-        current_time = 0.0
-        for i, scene in enumerate(scenes):
-            dur = scene.get("duration_sec", 10)
-            srt_lines.append(str(i + 1))
-            srt_lines.append(f"{_fmt_srt(current_time)} --> {_fmt_srt(current_time + dur)}")
-            srt_lines.append(scene.get("narration", ""))
+        chunk_size = 4
+        cue_idx = 1
+        for i in range(0, len(words), chunk_size):
+            chunk_words = words[i:i + chunk_size]
+            start_s = i / wps
+            end_s = min(total_dur, (i + len(chunk_words)) / wps)
+            srt_lines.append(str(cue_idx))
+            srt_lines.append(f"{_fmt_srt(start_s)} --> {_fmt_srt(end_s)}")
+            srt_lines.append(" ".join(chunk_words))
             srt_lines.append("")
-            current_time += dur
+            cue_idx += 1
 
         with open(srt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(srt_lines))
         return True
     except Exception as e:
         print(f"[tts_engine] gTTS error: {e}")
-    return False
+        return False
 
 
 def _fmt_srt(seconds: float) -> str:
