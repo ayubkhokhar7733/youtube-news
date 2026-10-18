@@ -39,29 +39,58 @@ _session.headers.update({
 })
 
 CATEGORY_QUERIES = {
-    "ai": [
-        "Artificial Intelligence OR OpenAI OR Anthropic OR DeepSeek OR Nvidia AI when:1d",
-        "Generative AI OR ChatGPT OR Claude 3.5 OR AI robotics when:1d",
+    # High-Velocity Pillar 1: US Executive & Constitutional Power
+    "power": [
+        "White House executive order OR policy announcement OR President Trump when:1d",
+        "Department of Justice OR Supreme Court ruling OR Congress Senate bill when:1d",
+        "FBI investigation OR Pentagon military policy OR border executive action when:1d",
     ],
+    # High-Velocity Pillar 2: Macroeconomic Shocks & Dollar Stakes
+    "economy": [
+        "US tariffs trade war OR Federal Reserve interest rate decision when:1d",
+        "US economy inflation shock OR Wall Street crisis OR Treasury debt when:1d",
+        "global oil energy prices shock OR OPEC US strategic petroleum when:1d",
+    ],
+    # High-Velocity Pillar 3: Big Tech Hegemony & Defense/AI Race
+    "tech_power": [
+        "US China chip war semiconductor ban OR AI superpower race when:1d",
+        "OpenAI OR Anthropic OR Nvidia AI military defense contract when:1d",
+        "Elon Musk DOGE OR tech antitrust lawsuit OR H1B visa restrictions when:1d",
+    ],
+    # High-Velocity Pillar 4: Global Strategic Flashpoints
+    "geopolitics": [
+        "Middle East conflict escalation OR Red Sea oil corridor shipping when:1d",
+        "Taiwan Strait US China naval defense OR NATO Russia strategy when:1d",
+        "global trade sanctions dollar bypass OR international emergency summit when:1d",
+    ],
+    # Backward compatibility aliases
     "trump": [
-        "Donald Trump OR Trump administration OR White House announcement when:1d",
-        "Donald Trump executive order OR press conference OR policy when:1d",
+        "White House executive order OR President Trump announcement when:1d",
+        "White House policy OR Trump administration legal battle when:1d",
+    ],
+    "ai": [
+        "Artificial Intelligence OpenAI Anthropic OR Nvidia chip race when:1d",
+        "AI military robotics OR generative AI breakthrough policy when:1d",
     ],
     "tech": [
-        "technology breaking news OR Apple OR Microsoft OR Tesla OR Elon Musk when:1d",
-        "major tech announcement OR cyber security OR space tech when:1d",
+        "US semiconductor chip ban OR Big Tech antitrust Elon Musk when:1d",
+        "Apple Microsoft Tesla cybersecurity emergency when:1d",
     ],
     "global": [
-        "breaking world news OR international diplomacy OR global summit when:1d",
-        "major global economy OR geopolitical event when:1d",
+        "breaking world news diplomacy OR international geopolitical flashpoint when:1d",
+        "global economy trade sanctions conflict when:1d",
     ],
 }
 
 REDDIT_SUBREDDITS = {
+    "power": ["politics", "news"],
+    "economy": ["economics", "stocks"],
+    "tech_power": ["technology", "singularity"],
+    "geopolitics": ["geopolitics", "worldnews"],
+    "trump": ["politics", "news"],
     "ai": ["singularity", "artificial"],
-    "trump": ["news", "politics"],
     "tech": ["technology", "gadgets"],
-    "global": ["worldnews", "news"],
+    "global": ["worldnews", "geopolitics"],
 }
 
 
@@ -90,14 +119,58 @@ def save_news_history(history: list):
         json.dump({"history": history}, f, indent=2, ensure_ascii=False)
 
 
+_KNOWN_ENTITIES = [
+    "trump", "white house", "biden", "musk", "vance", "doj", "fbi", "supreme court",
+    "congress", "senate", "house", "pentagon", "powell", "federal reserve", "fed",
+    "altman", "openai", "nvidia", "gates", "apple", "google", "meta", "zuckerberg",
+    "china", "xi jinping", "russia", "putin", "ukraine", "zelensky", "israel", "netanyahu",
+    "iran", "hegseth", "rubio", "bondi", "rfk", "kennedy", "tiktok"
+]
+
+_STOP_WORDS = {
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with",
+    "by", "from", "up", "about", "into", "over", "after", "is", "are", "was", "were",
+    "be", "been", "being", "have", "has", "had", "do", "does", "did", "says", "said",
+    "new", "now", "what", "how", "why", "who", "when", "amid", "as", "it", "its", "that",
+    "this", "will", "can", "could", "would", "should", "more", "out", "than", "other"
+}
+
+_HIGH_IMPACT_ACTIONS = {
+    "ban", "tariff", "sanction", "subpoena", "lawsuit", "sue", "veto", "pardon",
+    "deport", "order", "indict", "fire", "oust", "strike", "raid", "hack", "leak",
+    "probe", "investigat", "warn", "threat", "credential", "press"
+}
+
+
+def _stem(word: str) -> str:
+    """Simple robust English suffix normalization for news keywords."""
+    w = word.lower()
+    for suff in ("ing", "ies", "es", "ed", "s"):
+        if w.endswith(suff) and len(w) - len(suff) >= 3:
+            return w[:-len(suff)]
+    return w
+
+
+def _extract_story_signature(title: str) -> tuple:
+    """Extracts detected entities and stemmed key action terms from a headline."""
+    lower = title.lower()
+    entities = [ent for ent in _KNOWN_ENTITIES if ent in lower]
+    words = re.findall(r'[a-zA-Z]{3,}', lower)
+    action_terms = [_stem(w) for w in words if w not in _STOP_WORDS and w not in entities]
+    return set(entities), set(action_terms)
+
+
 def record_story_in_history(story: dict):
     """Append newly selected story to history to prevent future duplicates."""
     history = load_news_history()
+    ent_set, term_set = _extract_story_signature(story.get("title", ""))
     entry = {
         "title": story.get("title", ""),
         "source": story.get("source", ""),
         "category": story.get("category", ""),
         "url": story.get("url", ""),
+        "entities": list(ent_set),
+        "key_terms": list(term_set)[:10],
         "recorded_at": datetime.now(timezone.utc).isoformat(),
     }
     history.append(entry)
@@ -107,25 +180,61 @@ def record_story_in_history(story: dict):
     save_news_history(history)
 
 
-def is_story_duplicate(candidate_title: str, history: list, threshold: float = 0.60) -> bool:
-    """Check if candidate headline is too similar to any story covered recently (past 14 days)."""
+def is_story_duplicate(candidate_title: str, history: list, threshold: float = 0.58) -> bool:
+    """
+    Check if candidate headline is too similar to any story covered recently.
+    Uses a multi-tier anti-collision check:
+    1. Direct sequence similarity >= threshold (0.58)
+    2. Token overlap (Jaccard >= 0.45)
+    3. Entity + Action Cluster check: If same primary entity AND >= 2 key action terms
+       match a story covered in the last 48 hours, it's flagged as duplicate.
+    """
     clean_candidate = re.sub(r'[^a-zA-Z0-9 ]', '', candidate_title).lower().strip()
-    candidate_tokens = set(clean_candidate.split())
+    candidate_tokens = set(clean_candidate.split()) - _STOP_WORDS
+    cand_entities, cand_terms = _extract_story_signature(candidate_title)
+
+    now = datetime.now(timezone.utc)
 
     for entry in reversed(history[-150:]):
         past_title = entry.get("title", "")
         clean_past = re.sub(r'[^a-zA-Z0-9 ]', '', past_title).lower().strip()
-        past_tokens = set(clean_past.split())
+        past_tokens = set(clean_past.split()) - _STOP_WORDS
 
-        # Sequence matcher ratio
+        # 1. Sequence matcher ratio
         seq_ratio = difflib.SequenceMatcher(None, clean_candidate, clean_past).ratio()
         if seq_ratio >= threshold:
             return True
 
-        # Jaccard token overlap for word combinations
+        # 2. Jaccard token overlap for word combinations
         if candidate_tokens and past_tokens:
             jaccard = len(candidate_tokens & past_tokens) / len(candidate_tokens | past_tokens)
-            if jaccard >= 0.55:
+            if jaccard >= 0.45:
+                return True
+
+        # 3. Entity + Action Cluster Collision (Strict 48-Hour Filter)
+        past_rec = entry.get("recorded_at")
+        is_recent_48h = True
+        if past_rec:
+            try:
+                dt = datetime.fromisoformat(past_rec)
+                if (now - dt).total_seconds() > 172800:  # 48 hours
+                    is_recent_48h = False
+            except Exception:
+                pass
+
+        if is_recent_48h:
+            past_entities = set(entry.get("entities") or [])
+            past_terms = set(entry.get("key_terms") or [])
+            if not past_entities or not past_terms:
+                past_entities, past_terms = _extract_story_signature(past_title)
+
+            # Same entity (e.g. Trump, White House, Musk, Gates) + action terms overlap
+            entity_overlap = cand_entities & past_entities
+            term_overlap = cand_terms & past_terms
+            if entity_overlap and (len(term_overlap) >= 2 or (term_overlap & _HIGH_IMPACT_ACTIONS)):
+                return True
+            # High action term overlap even across entity variations (e.g. 3+ key terms)
+            if len(term_overlap) >= 3 or len(term_overlap & _HIGH_IMPACT_ACTIONS) >= 2:
                 return True
 
     return False

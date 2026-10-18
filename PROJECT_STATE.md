@@ -1,142 +1,128 @@
-# Automated YouTube Engine — Clean New Channel Base
+# Global Pulse 24 — Autonomous Video Engine & Channel Architecture
 
-## 🏛️ Project State & Architecture Documentation
-
-This document describes the engine architecture, configuration, and setup procedures for this **new channel project**.
-This codebase has been cleanly decoupled from the previous project/repo. All previous video histories, queues, cached playlists, and YouTube OAuth credentials have been cleared to guarantee 100% isolation.
-
----
-
-## 1. Channel Profile & Identity (Ready for Configuration)
-
-- **Channel Name**: `[Pending User Channel Name]`
-- **Channel ID**: `[Pending New Channel ID]`
-- **Primary Handle**: `[Pending New Handle]`
-- **Niche / Focus**: `[Pending Selection — e.g. Motivational / Mindset / Custom Flow]`
-- **Narrator Persona**: Configurable via Edge-TTS (e.g. `en-US-GuyNeural`, `en-US-ChristopherNeural`, etc.)
-- **Git Status**: Clean local repository, no upstream remote linked.
+## 🏛️ Project State & Operational Playbook
+**Channel Name**: Global Pulse 24  
+**Primary Niche**: US Executive Power, Macroeconomic Shocks & Global Geopolitics  
+**Target Demographic**: Core US (60%+), Adults 45–65+, high affinity for high-stakes governance, dollar impacts, and global power shifts.  
+**Content Strategy**: The "Hub & Spoke" System (1x Long-Form Deep Dive 6–8 mins + 2x Related Shorts 30–50s).
 
 ---
 
-## 2. System Architecture & Component Call Graph
+## 1. The 4 High-Velocity Pillars
+
+To prevent single-topic fatigue ("Trump on every video") and eliminate low-view commodity news, the engine strictly rotates across 4 core pillars:
+
+| Pillar Key | Topic Focus | Target Keywords / Coverage | Weight in Auto Pool |
+| :--- | :--- | :--- | :--- |
+| **`power`** | **US Executive & Constitutional Power** | White House executive orders, DOJ/FBI actions, Supreme Court rulings, Congress/Senate power clashes, border and deportation policies. | **35%** |
+| **`economy`** | **Macroeconomic Shocks & Dollar Stakes** | US tariffs and trade wars, Federal Reserve interest rates, inflation surprises, oil/energy geopolitics, Wall Street & debt ceiling. | **30%** |
+| **`tech_power`** | **Big Tech Hegemony & AI Defense Race** | US-China semiconductor chip bans, Pentagon/military AI contracts (Anthropic, OpenAI, Nvidia), Elon Musk vs regulators, H-1B tech visa restrictions. | **20%** |
+| **`geopolitics`** | **Strategic Global Flashpoints** | Flashpoints with direct US stakes: Middle East shipping & oil corridors, Taiwan Strait naval strategy, Russia-NATO trade realignments. | **15%** |
+
+---
+
+## 2. System Architecture & Component Roles
 
 ```mermaid
 flowchart TD
-    A["Topic Selector (topic_selector.py)"] -->|Next balanced topic| B["Script Generator (core/script_generator.py)"]
-    B -->|300s Rich Script| C["TTS Engine (core/tts_engine.py)"]
-    B -->|Scene Keywords| D["Media Searcher (core/media_searcher.py)"]
-    B -->|Script Context| E["SEO Generator (metadata_generator.py)"]
+    A["Live News Ingestion<br/>(Google News RSS + Reddit)"] --> B["Anti-Collision Engine<br/>(core/news_scraper.py)"]
+    B -->|Verified Fresh Story Dossier| C["4-Act Script Generator<br/>(core/news_script_generator.py)"]
     
-    C -->|Voiceover Audio + Word Timestamps| F["Video Composer (core/video_composer.py)"]
-    D -->|Dual Pexels + Pixabay 720p HD Footage| F
+    C -->|Spoken Broadcast Text| D["Neural Edge-TTS Audio<br/>(core/tts_engine.py)"]
+    C -->|Scene Visual Directives| E["Organic Visual Engine<br/>(core/news_visual_engine.py)"]
+    C -->|Story Context| F["SEO Metadata Generator<br/>(metadata_generator.py)"]
     
-    F -->|1080p Landscape Master MP4| G["Shorts Extractor (shorts_extractor.py)"]
-    F -->|Background Frame| H["Thumbnail Generator (thumbnail_gen.py)"]
+    D -->|Voice Track + Word Subtitles| G["Direct FFmpeg Composer<br/>(core/video_composer.py)"]
+    E -->|Verified Press Imagery + Pexels B-Roll| G
     
-    G -->|2x 9:16 Vertical Shorts| I["YouTube Uploader (youtube_uploader.py)"]
-    H -->|1280x720 Maxres JPEG| I
-    E -->|Optimized Title, Desc, Tags| I
+    G -->|16:9 HD Master Broadcast MP4| H["Shorts Extractor<br/>(shorts_extractor.py)"]
+    G -->|Final Video Output| I["YouTube Uploader<br/>(youtube_uploader.py)"]
     
-    I -->|OAuth 2.0 Upload| J["YouTube Studio (Private / Public)"]
-    I -->|Advance Queue & Telemetry| K["Git Commit [skip ci]"]
+    F -->|Curiosity / Stakes SEO Title| J["Thumbnail Generator<br/>(news_thumbnail_gen.py)"]
+    J -->|High-CTR 1280x720 Thumbnail| I
+    H -->|2x 9:16 Vertical Shorts| I
 ```
 
-### Detailed Component Roles:
-1. **[`pipeline.py`](file:///pipeline.py)**: Headless CLI controller orchestrating the 7 production stages with time estimation and error recovery.
-2. **[`core/script_generator.py`](file:///core/script_generator.py)**: Groq API client running `llama-3.3-70b-versatile`. Produces 300-second documentary scripts broken into ~33 scenes with visual prompts and avoid-cliché instructions.
-3. **[`core/tts_engine.py`](file:///core/tts_engine.py)**: Synthesizes high-fidelity voiceover and extracts millisecond word timestamps from the Edge-TTS WebSocket stream.
-4. **[`core/media_searcher.py`](file:///core/media_searcher.py)**: Queries Pexels & Pixabay concurrently. Slices HD 720p landscape clips (`16:9`) and large photos using a persistent `requests.Session` with connection pooling.
-5. **[`core/video_composer.py`](file:///core/video_composer.py)**: Direct FFmpeg compositor. Applies Ken Burns zoom to images, normalizes clip frame rates, ducks ambient background music, and burns in word-highlighted ASS subtitles (`Fontsize=22, MarginV=55`).
-6. **[`thumbnail_gen.py`](file:///thumbnail_gen.py)**: Pillow 1280x720 graphics engine creating high-CTR thumbnails with dark contrast vignettes and bold 2-4 word badges.
-7. **[`shorts_extractor.py`](file:///shorts_extractor.py)**: Analyzes scene transcript density, extracts the top 2 narrative segments (30–60s), crops to vertical 9:16 (`1080x1920`), and formats word subtitles.
-8. **[`topic_selector.py`](file:///topic_selector.py)**: Rotates across 4 core categories, avoids topics covered in the last 90 days (`data/topic_history.json`), and automatically triggers Groq to brainstorm 20 fresh topics when fewer than 5 remain.
-9. **[`metadata_generator.py`](file:///metadata_generator.py)**: Generates 5 rotating title patterns (Curiosity gap, List, Question, Myth-bust, Scale) and comprehensive descriptions ending with channel branding.
-10. **[`youtube_uploader.py`](file:///youtube_uploader.py)**: Resumable chunked video uploader with exponential backoff, automated playlist sorting, and `containsSyntheticMedia: true` compliance disclosure.
+### Core File Responsibilities:
+1. **[`news_pipeline.py`](file:///D:/youtube-automation-flows/news-flow/news_pipeline.py)**: Master orchestrator. Handles CLI arguments, auto-category selection, voice/dimension presets, thumbnail coordination, and YouTube publishing.
+2. **[`core/news_scraper.py`](file:///D:/youtube-automation-flows/news-flow/core/news_scraper.py)**: Real-time RSS and Reddit news scraper with **Stemmed Entity + 48-Hour Action Cluster Anti-Collision**.
+3. **[`core/news_script_generator.py`](file:///D:/youtube-automation-flows/news-flow/core/news_script_generator.py)**: Groq LLM scriptwriter (`qwen/qwen3.8-27b`, `openai/gpt-oss-120b`). Uses a **4-Act narrative structure** for long-form (6–8 min) broadcasts and punchy cold-hook Shorts (45s).
+4. **[`core/tts_engine.py`](file:///D:/youtube-automation-flows/news-flow/core/tts_engine.py)**: Neural voice synthesizer (`en-US-ChristopherNeural`) with millisecond word timestamps for burned-in subtitles.
+5. **[`core/news_visual_engine.py`](file:///D:/youtube-automation-flows/news-flow/core/news_visual_engine.py)**: Assembles 100% organic, strike-proof visual media:
+   - Verified Wikimedia public domain press photos (with strict keyword validation to prevent mismatched politicians).
+   - High-contrast newspaper headline highlight cards.
+   - Verified official statement / tweet cards.
+   - Pexels/Pixabay contextual camera B-roll.
+   - Live lower-third broadcast ticker and source attribution badges.
+6. **[`core/video_composer.py`](file:///D:/youtube-automation-flows/news-flow/core/video_composer.py)**: Direct FFmpeg streaming compositor. Employs chunk-based rendering for near-zero memory footprint, Ken Burns image motion, and burned-in outline subtitles.
+7. **[`news_thumbnail_gen.py`](file:///D:/youtube-automation-flows/news-flow/news_thumbnail_gen.py)**: 1280x720 broadcast thumbnail generator with alpha directional gradients, 3D drop-shadow typography, and **recent thumbnail image history tracking** (`data/thumbnail_history.json`).
+8. **[`metadata_generator.py`](file:///D:/youtube-automation-flows/news-flow/metadata_generator.py)**: High-CTR SEO title generator rotating between curiosity gap, stakes/scale, question hook, and list patterns.
+9. **[`shorts_extractor.py`](file:///D:/youtube-automation-flows/news-flow/shorts_extractor.py)**: Automatically extracts 30–50 second 9:16 vertical shorts from rendered 16:9 master videos.
+10. **[`youtube_uploader.py`](file:///D:/youtube-automation-flows/news-flow/youtube_uploader.py)**: OAuth2 YouTube API client with automated playlist assignment and metadata submission.
 
 ---
 
-## 3. GitHub Actions Automated Schedule
+## 3. Post-Mortem: Previous Failures & Applied Fixes
 
-- **Workflow File**: [`.github/workflows/publish.yml`](file:///.github/workflows/publish.yml)
-- **Schedule**: Runs automatically **2 times every day**:
-  - `14:00 UTC` (7:00 PM PKT / 10:00 AM EST)
-  - `22:00 UTC` (3:00 AM PKT / 6:00 PM EST)
-- **Execution Environment**: Ubuntu Latest runner (`ffmpeg`, Python 3.10, system fonts).
-- **Execution Speed**: **~8 minutes total runtime** for a full 5-minute video.
-- **Git Sync**: Automatically commits and pushes updated topic queue and history back to repository using `[skip ci]`.
-
----
-
-## 4. Quota Budget & Daily Limits
-
-| Service | Free Tier / Daily Cap | Used Per Video | Safe Daily Capacity |
-| :--- | :--- | :--- | :--- |
-| **YouTube Data API v3** | 10,000 units / day | ~1,700 units (video + thumbnail + playlist) | **5 to 6 videos / day max** (3–4 is safe buffer) |
-| **GitHub Actions** | 2,000 runner minutes / month | ~8 minutes | **~8 videos / day** (250 videos / month) |
-| **Pexels API** | 25,000 requests / month | ~30 requests | **~25 videos / day** |
-| **Pixabay API** | 100 requests / minute | ~30 requests | **Virtually unlimited** for batch schedules |
-| **Groq API** | 14,400 requests / day | 2-3 requests | **Thousands of videos / day** |
+| Issue Encountered | Root Cause in Legacy Code | Permanent Fix Applied |
+| :--- | :--- | :--- |
+| **"Trump on every second video"** | `weighted_pool` in `news_pipeline.py` had Trump hardcoded 5 times (50%). | Replaced with the 4 strategic pillars (`power`, `economy`, `tech_power`, `geopolitics`). |
+| **4 Duplicate Videos on 9/23 (DOJ/Trump Media Ban)** | `is_story_duplicate()` only checked sequence matching on raw headline text. Different wire phrasing slipped through. | Implemented **Stemmed Entity + Action Cluster deduplication** (`ban`, `tariff`, `sanction`, `subpoena`, `order`, etc.). Any story matching the same entity + action within 48 hours is strictly blocked. |
+| **Mismatched Face (Anthony Albanese on Amazon AI)** | Wikipedia fallback search (`srsearch`) blindly accepted the first search result without verifying relevance to the query. | Added strict token validation: search result titles must share keyword tokens with the original entity query before any image is accepted. |
+| **Repeated JD Vance / Trump Images** | Single Wikipedia primary portraits were reused indefinitely without history tracking. | Created `data/thumbnail_history.json`. The pipeline now cycles to alternative candidate imagery if a portrait was used in the last 6 thumbnails. |
+| **Dry RSS Titles in YouTube Feed** | `news_pipeline.py` line 515 had `meta["title"] = video_title`, overwriting the SEO generator. | Removed the overwrite. Preserves `metadata_generator.py`'s curiosity-gap and stakes-driven titles for both metadata and thumbnails. |
 
 ---
 
-## 5. Transitioning from Private Backlog to Public Autopilot
+## 4. CLI Execution Playbook
 
-The system currently defaults to uploading videos as `private` to build your initial 15-video backlog in YouTube Studio.
+### A. Long-Form Investigative Broadcast (6–8 Minutes, 16:9 Landscape)
+```powershell
+# Executive Power & Governance
+python news_pipeline.py --category power --format landscape --duration 360
 
-When ready to make all future scheduled uploads go live to the public automatically:
-1. Open [`.github/workflows/publish.yml`](file:///.github/workflows/publish.yml).
-2. On line 90, change:
-   ```yaml
-   PRIVACY="${{ github.event.inputs.privacy || 'private' }}"
-   ```
-   to:
-   ```yaml
-   PRIVACY="${{ github.event.inputs.privacy || 'public' }}"
-   ```
-3. Commit and push. All future scheduled runs will publish as **Public**.
+# Macroeconomic & Tariff Shocks
+python news_pipeline.py --category economy --format landscape --duration 360
 
----
+# Big Tech & Defense/AI Flashpoints
+python news_pipeline.py --category tech_power --format landscape --duration 360
 
-## 6. How to Set Up on a Brand-New PC
+# Global Strategic Flashpoints
+python news_pipeline.py --category geopolitics --format landscape --duration 360
+```
 
-When cloning this project to a new computer:
+### B. High-Velocity Breaking Short (45 Seconds, 9:16 Vertical)
+```powershell
+python news_pipeline.py --category power --format shorts --duration 45
+```
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/ayubkhokhar7733/youtube-automate.git
-   cd youtube-automate
-   ```
-2. **Install Python 3.10+ and FFmpeg**:
-   - Ensure `python --version` and `ffmpeg -version` both return valid versions in your terminal.
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. **Configure Local Environment (`.env`)**:
-   Create a `.env` file in the project root with your credentials:
-   ```env
-   GROQ_API_KEY=your_groq_api_key_here
-   PEXELS_API_KEY=your_pexels_api_key_here
-   PIXABAY_API_KEY=your_pixabay_api_key_here
-   YOUTUBE_CLIENT_ID=your_client_id.apps.googleusercontent.com
-   YOUTUBE_CLIENT_SECRET=your_client_secret_here
-   YOUTUBE_REFRESH_TOKEN=your_refresh_token_here
-   ```
-5. **Verify YouTube Connection**:
-   ```bash
-   py -c "import youtube_uploader; client = youtube_uploader.get_youtube_client(); res = client.channels().list(part='snippet', mine=True).execute(); print('Connected:', res['items'][0]['snippet']['title'])"
-   ```
-   *(Expected output: `Connected: Chronicles of Stone`)*
+### C. Manual Query Override (Target Specific Breaking News Event)
+```powershell
+python news_pipeline.py --query "Federal Reserve interest rate decision emergency" --format landscape --duration 360
+```
+
+### D. Full Autonomous Mode (Auto-Select Fresh Story, Render, & Upload)
+```powershell
+# Upload as Private (recommended for queue review)
+python news_pipeline.py --auto-post --upload --privacy private
+
+# Upload Directly as Public
+python news_pipeline.py --auto-post --upload --privacy public
+```
+
+### E. Extracting Shorts from a Long Video (Hub & Spoke Model)
+```powershell
+python shorts_extractor.py --video "output\your_video.mp4" --srt "temp\voiceover.srt" --max 2
+```
+*Tip: When uploading the extracted Shorts to YouTube Studio, use the **"Related Video"** selector to link directly to the full-length video.*
 
 ---
 
-## 7. Verified Production Runs
+## 5. 4-Act Long-Form Script Structure Reference
 
-- **Run 1 (Local Verification)**:
-  - Video: *"The Antikythera Mechanism Detail Nobody Talks About"*
-  - URL: [https://youtu.be/MAPl33zouPA](https://youtu.be/MAPl33zouPA)
-  - Specs: 1920x1080 Landscape, 273s duration, 77.5% media download speedup verified.
-- **Run 2 (Cloud GitHub Actions Verification)**:
-  - Video: *"The Truth About Alien Theories at Puma Punku Is Not What You Think"*
-  - URL: [https://youtu.be/zb7JUGlOxJ4](https://youtu.be/zb7JUGlOxJ4)
-  - Specs: 1920x1080 Landscape, 294s duration, maxres custom thumbnail, 8m 6s cloud runtime, 100% Private.
+For reference when modifying [`core/news_script_generator.py`](file:///D:/youtube-automation-flows/news-flow/core/news_script_generator.py):
+
+* **Act 1: The Breaking Flashpoint & Core Tension (Scenes 1–4, ~60–80s)**: Cold hook immediately detailing the executive order, regulatory move, or crisis. No introduction cliches.
+* **Act 2: Behind Closed Doors & Power Brokers (Scenes 5–9, ~90–120s)**: Agencies involved, internal divides, statements from leaders, legal briefs, and leaked memos.
+* **Act 3: Economic & Geopolitical Shockwaves (Scenes 10–14, ~90–120s)**: Dollar impact, inflation, market shifts, energy corridors, international allies/adversaries reaction.
+* **Act 4: The 48-Hour Forecast & What to Watch (Scenes 15–18, ~60–80s)**: Upcoming court hearings, congressional votes, retaliatory measures, and standard broadcast sign-off.

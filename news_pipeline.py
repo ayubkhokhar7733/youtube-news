@@ -61,8 +61,8 @@ def parse_args():
         "--category",
         type=str,
         default="auto",
-        choices=["auto", "ai", "trump", "tech", "global"],
-        help="News category to cover (default: 'auto' rotates among categories).",
+        choices=["auto", "power", "economy", "tech_power", "geopolitics", "ai", "trump", "tech", "global"],
+        help="News category to cover (default: 'auto' rotates among 4 high-velocity pillars).",
     )
     parser.add_argument(
         "--query",
@@ -81,7 +81,7 @@ def parse_args():
         "--duration",
         type=int,
         default=None,
-        help="Target duration in seconds (default: 45 for shorts, 120 for landscape).",
+        help="Target duration in seconds (default: 45 for shorts, 360 for landscape).",
     )
     parser.add_argument(
         "--voice",
@@ -200,23 +200,35 @@ def assemble_organic_media(scenes: list, dossier: dict, target_w: int, target_h:
         if kw in full_text and ent_label not in entity_queries:
             entity_queries.append(ent_label)
 
-    # Add category-appropriate fallbacks if story had no explicit entity matches
+    # Add category-appropriate institutional fallbacks if story had no explicit entity matches
     if not entity_queries:
-        if category == "trump":
-            entity_queries = ["Donald Trump", "The White House", "United States Capitol"]
-        elif category in ("ai", "tech"):
+        if category in ("power", "trump"):
+            entity_queries = ["The White House", "United States Capitol", "Supreme Court of the United States"]
+        elif category in ("economy",):
+            entity_queries = ["New York Stock Exchange", "Federal Reserve", "Wall Street"]
+        elif category in ("tech_power", "ai", "tech"):
             entity_queries = ["Silicon Valley", "OpenAI", "New York Stock Exchange"]
         else:
-            entity_queries = ["United States Capitol", "The White House", "United Nations General Assembly"]
+            entity_queries = ["United Nations General Assembly", "The Pentagon", "United States Capitol"]
 
-    # Always include the raw headline topic for stock photo search variety
+    # Always include the raw headline topic for Pexels/Pixabay stock photo search variety
     clean_topic_words = " ".join(title.split()[:5])
     if clean_topic_words:
         entity_queries.append(clean_topic_words)
 
-    photos = fetch_entity_photo_bank(entity_queries, target_w, target_h, max_photos=24)
-    featured_subject_img = photos[0] if photos else None
-    backdrop_img = photos[0] if photos else None
+    photos = fetch_entity_photo_bank(entity_queries, target_w, target_h, max_photos=28)
+
+    # Pick a featured thumbnail image that was NOT used in recent uploads to prevent repetition
+    recent_thumbs = news_thumbnail_gen.load_thumbnail_history() if hasattr(news_thumbnail_gen, "load_thumbnail_history") else []
+    featured_subject_img = None
+    for p in photos:
+        if os.path.basename(p) not in recent_thumbs[-6:]:
+            featured_subject_img = p
+            break
+    if not featured_subject_img and photos:
+        featured_subject_img = photos[0]
+
+    backdrop_img = featured_subject_img or (photos[0] if photos else None)
 
     # 2. Render Story-Specific Graphic Cards (Headline Cards, Quote Cards, Tweet Cards)
     ordered_assets = []
@@ -404,24 +416,26 @@ def run_news_pipeline(
 ) -> dict:
     start_time = time.time()
 
-    # Resolve auto category & daily format mix weighted for our 60% US / 55+ demographic
+    # Resolve auto category & daily format mix weighted for high-velocity US Power & Geopolitics
     if category.lower() == "auto":
         import random
-        # 55% Trump/White House/US Politics, 25% Musk/Big Tech/AI, 20% Global Geopolitics
+        # 4 High-Velocity Strategic Pillars (Zero monotonous single-topic repetition):
+        # 35% US Executive & Constitutional Power, 30% Macroeconomic Shocks, 20% Big Tech Hegemony, 15% Geopolitics
         weighted_pool = [
-            "trump", "trump", "trump", "trump", "trump",
-            "tech", "ai",
-            "global", "global",
+            "power", "power", "power",
+            "economy", "economy", "economy",
+            "tech_power", "tech_power",
+            "geopolitics",
         ]
         category = random.choice(weighted_pool)
-        print(f"[news_pipeline] 🎲 Auto-selected US-weighted category: {category.upper()}")
+        print(f"[news_pipeline] 🎲 Auto-selected strategic pillar: {category.upper()}")
 
         # On automated scheduled runs (no manual query override), automatically produce
-        # 1 full Long-Form (16:9, 120s) broadcast daily during the 18:00 UTC (1 PM EST) slot!
+        # 1 full Long-Form (16:9, 360s / 6-minute) broadcast daily during the 18:00 UTC (1 PM EST) slot!
         utc_hour = datetime.utcnow().hour
         if not query and duration is None and utc_hour in (17, 18, 19):
             output_format = "landscape"
-            print("[news_pipeline] 📺 Peak US Daytime Slot (18:00 UTC) -> Auto-upgrading to LONG-FORM (16:9 Landscape, 120s)!")
+            print("[news_pipeline] 📺 Peak US Daytime Slot (18:00 UTC) -> Auto-upgrading to LONG-FORM (16:9 Landscape, 360s)!")
 
     print("=" * 65)
     print("🚀 LAUNCHING AUTONOMOUS NEWS VIDEO ENGINE")
@@ -436,7 +450,7 @@ def run_news_pipeline(
     else:
         config.VIDEO_WIDTH = 1920
         config.VIDEO_HEIGHT = 1080
-        target_dur = duration or 120
+        target_dur = duration or getattr(config, "DEFAULT_LONGFORM_DURATION", 360)
 
     config.TOTAL_TARGET_DURATION = target_dur
     config.VOICE_NAME = voice or getattr(config, "NEWS_VOICE", "en-US-ChristopherNeural")
@@ -499,20 +513,21 @@ def run_news_pipeline(
     )
     print(f"[news_pipeline] Video Render Complete: {video_path}")
 
-    # 8. High-CTR Thumbnail & SEO Metadata
-    print("\n[Stage 7/7] Generating High-CTR Thumbnail & SEO Metadata...")
-    thumb_path = news_thumbnail_gen.generate_news_thumbnail(
-        title=video_title,
-        category_label=category_label,
-        subject_image_path=featured_img,
-    )
-
-    # Generate metadata
+    # 8. High-CTR SEO Metadata & Broadcast Thumbnail
+    print("\n[Stage 7/7] Generating High-CTR SEO Metadata & Broadcast Thumbnail...")
     meta = metadata_generator.generate_metadata(
         script=script,
         topic=video_title,
     )
-    meta["title"] = video_title
+    seo_title = meta.get("title") or video_title
+    meta["title"] = seo_title
+
+    thumb_path = news_thumbnail_gen.generate_news_thumbnail(
+        title=seo_title,
+        category_label=category_label,
+        subject_image_path=featured_img,
+    )
+
     if primary_source and primary_source not in meta.get("description", ""):
         meta["description"] = f"Verified Wire Coverage (Source: {primary_source}).\n\n" + meta.get("description", "")
 

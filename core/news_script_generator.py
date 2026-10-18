@@ -39,19 +39,34 @@ _WPS = 2.3  # Words per second for neural broadcast speech rate
 # ---------------------------------------------------------------------------
 
 def _build_news_prompt(dossier: dict, target_dur: int, scene_count: int, target_words: int) -> str:
-    category = dossier.get("category", "ai").upper()
+    category = dossier.get("category", "power").upper()
     title = dossier.get("title", "")
     source = dossier.get("primary_source", "News Wire")
     summary = dossier.get("summary", "")
-    angles = "\n".join(f"- {a}" for a in dossier.get("related_angles", [])[:4])
+    angles = "\n".join(f"- {a}" for a in dossier.get("related_angles", [])[:5])
 
-    is_short = target_dur <= 60
+    is_longform = target_dur >= 180
     words_per_scene = round(target_words / scene_count)
 
     cta_text = (
-        "End the final scene with a forward-looking observation and the exact sentence: 'Follow for real-time verified updates.'\n"
+        "End the final scene with a forward-looking analytical observation and the exact sign-off sentence: 'Follow for real-time verified updates.'\n"
         "STRICTLY FORBIDDEN: Do NOT use cheesy YouTube lines like 'Smash that like button' or 'Subscribe to my channel'."
     )
+
+    narrative_structure = ""
+    if is_longform:
+        narrative_structure = (
+            "=== 4-ACT LONG-FORM NARRATIVE BLUEPRINT ===\n"
+            "This is a deep-dive 6 to 8-minute investigative broadcast. You MUST structure the scenes sequentially across 4 distinct acts:\n"
+            f"- ACT 1: THE BREAKING FLASHPOINT & CORE TENSION (Scenes 1 to {max(2, scene_count // 4)}): "
+            "Cold hook! What major move, executive order, crisis, or revelation just occurred? State the immediate high stakes.\n"
+            f"- ACT 2: BEHIND CLOSED DOORS & POWER BROKERS (Scenes {max(3, scene_count // 4 + 1)} to {max(4, scene_count // 2)}): "
+            "Who are the key players, politicians, CEOs, or agencies driving this? Cite official statements, legal briefs, and leaked memos.\n"
+            f"- ACT 3: ECONOMIC & GEOPOLITICAL SHOCKWAVES (Scenes {max(5, scene_count // 2 + 1)} to {max(6, 3 * scene_count // 4)}): "
+            "The dollar stakes: What happens to tariffs, inflation, markets, energy supplies, or foreign allies? Who wins and who loses?\n"
+            f"- ACT 4: THE 48-HOUR FORECAST & WHAT TO WATCH (Scenes {max(7, 3 * scene_count // 4 + 1)} to {scene_count}): "
+            "What happens next? What court battles, congressional votes, or retaliatory moves are coming in the next 48 to 72 hours?\n\n"
+        )
 
     return (
         f"You are a senior broadcast news anchor and investigative journalist for Global Pulse 24, an elite global news wire.\n"
@@ -66,6 +81,7 @@ def _build_news_prompt(dossier: dict, target_dur: int, scene_count: int, target_
         f"TARGET DURATION: {target_dur} seconds spoken audio.\n"
         f"TOTAL WORD COUNT: Exactly {int(target_words * 0.85)} to {target_words} words across all {scene_count} scenes.\n"
         f"SCENE COUNT: {scene_count} scenes (~{words_per_scene} words per scene).\n\n"
+        f"{narrative_structure}"
         f"=== CRITICAL JOURNALISTIC RULES ===\n"
         f"1. COLD HOOK OPENING: Scene 1 MUST open immediately with the breaking event. Never say 'Welcome back', 'In this video', or 'Did you know'.\n"
         f"2. ZERO HALLUCINATION: Rely strictly on the facts, sources, and entities provided in the dossier.\n"
@@ -74,14 +90,14 @@ def _build_news_prompt(dossier: dict, target_dur: int, scene_count: int, target_
         f"=== VISUAL BLUEPRINT RULES ===\n"
         f"For each scene, choose ONE organic visual type that best illustrates the spoken words:\n"
         f"- 'headline_card': Display the published article headline with a yellow highlight on key words.\n"
-        f"- 'tweet_card': Display an authentic public statement / tweet card from an official figure (e.g. Donald Trump, Elon Musk, OpenAI, White House).\n"
-        f"- 'press_photo': Display a verified public domain press photo of the key person or building (e.g. 'Donald Trump', 'Sam Altman', 'White House', 'Capitol Hill').\n"
-        f"- 'broll_video': Display authentic camera B-roll footage (provide search query like 'newsroom broadcast studio', 'data center servers', 'press conference microphones').\n\n"
+        f"- 'tweet_card': Display an authentic public statement / tweet card from an official figure (e.g. White House, Donald Trump, Elon Musk, Jerome Powell, OpenAI, DOJ).\n"
+        f"- 'press_photo': Display a verified public domain press photo of the key person or building (e.g. 'The White House', 'United States Capitol', 'Federal Reserve', 'Elon Musk', 'Donald Trump').\n"
+        f"- 'broll_video': Display authentic camera B-roll footage (provide search query like 'newsroom broadcast studio', 'wall street stock trading', 'capitol hill building', 'data center servers').\n\n"
         f"Return ONLY valid JSON (no markdown code fence, no commentary):\n"
         "{\n"
         '  "title": "High-CTR YouTube Title (60-70 chars max)",\n'
         '  "ticker_text": "PUNCHY 6-10 WORD SUMMARY FOR RUNNING LOWER-THIRD TICKER",\n'
-        '  "category_label": "BREAKING NEWS | AI ALERT | SPECIAL REPORT",\n'
+        '  "category_label": "SPECIAL REPORT | BREAKING DISPATCH | ECONOMIC ALERT",\n'
         '  "scenes": [\n'
         '    {\n'
         f'      "narration": "Exact broadcast words to speak (~{words_per_scene} words).",\n'
@@ -272,6 +288,11 @@ def generate_news_script(dossier: dict, target_duration: int = 45, max_retries: 
         target_words = min(100, int(target_duration * 2.1))
         scene_count = 4
         max_tokens = 1000
+    elif target_duration >= 180:
+        # Long-form 6-8 min documentary broadcast (16:9 Landscape)
+        target_words = int(target_duration * 2.1)
+        scene_count = max(8, min(24, round(target_duration / 20)))
+        max_tokens = 4096
     else:
         target_words = int(target_duration * 2.2)
         scene_count = max(6, round(target_duration / 16))

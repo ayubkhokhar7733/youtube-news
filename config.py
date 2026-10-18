@@ -47,8 +47,9 @@ VALID_VOICES = [
 ]
 
 # News Channel Categories & Defaults
-NEWS_CATEGORIES = ("ai", "trump", "tech", "global")
-DEFAULT_NEWS_CATEGORY = "ai"
+NEWS_CATEGORIES = ("power", "economy", "tech_power", "geopolitics", "ai", "trump", "tech", "global")
+DEFAULT_NEWS_CATEGORY = "power"
+DEFAULT_LONGFORM_DURATION = 360  # 6 minutes default for long-form landscape
 NEWS_VOICE = "en-US-ChristopherNeural"
 
 

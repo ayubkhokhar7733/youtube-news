@@ -606,7 +606,7 @@ def compose_video(scenes, media_items, srt_path, voiceover_path, voiceover_durat
         "-c", "copy",
         full_visual_path
     ]
-    res = subprocess.run(concat_cmd, capture_output=True, timeout=120, stdin=subprocess.DEVNULL)
+    res = subprocess.run(concat_cmd, capture_output=True, timeout=300, stdin=subprocess.DEVNULL)
     if res.returncode != 0 or not os.path.exists(full_visual_path) or os.path.getsize(full_visual_path) < 1000:
         raise RuntimeError(f"FFmpeg visual track concatenation failed: {res.stderr.decode('utf-8', errors='replace')}")
 
@@ -727,7 +727,7 @@ def compose_video(scenes, media_items, srt_path, voiceover_path, voiceover_durat
         pct = 62
         last_size = -1
         stagnant_sec = 0
-        max_total_sec = 600  # 10 minutes max render limit
+        max_total_sec = 1200  # 20 minutes max render limit for long-form
         total_sec = 0
         
         while not _tick_stop.is_set():

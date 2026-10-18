@@ -448,15 +448,22 @@ def fetch_and_frame_press_photo(
     except Exception as e:
         print(f"[news_visual_engine] Wikimedia search error for '{entity_name}': {e}")
 
-    # If direct title query didn't find thumbnail, perform a Wikimedia search query
+    # If direct title query didn't find thumbnail, perform a validated Wikimedia search query
     if not photo_url:
         try:
             s_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={clean_query}&format=json"
             s_resp = _wiki_session.get(s_url, timeout=10)
             if s_resp.status_code == 200:
                 s_results = s_resp.json().get("query", {}).get("search", [])
-                if s_results:
-                    top_title = urllib.parse.quote(s_results[0]["title"])
+                query_tokens = set(re.findall(r'[a-zA-Z]{3,}', entity_name.lower()))
+                for cand in s_results[:3]:
+                    cand_title = cand.get("title", "")
+                    cand_tokens = set(re.findall(r'[a-zA-Z]{3,}', cand_title.lower()))
+                    # Strict validation: cand_title MUST share keywords with the entity query
+                    # to prevent pulling unrelated politicians (e.g. Anthony Albanese on tech deals)
+                    if query_tokens and not (query_tokens & cand_tokens):
+                        continue
+                    top_title = urllib.parse.quote(cand_title)
                     sub_url = f"https://en.wikipedia.org/w/api.php?action=query&titles={top_title}&prop=pageimages&format=json&pithumbsize=1600"
                     sub_resp = _wiki_session.get(sub_url, timeout=10)
                     if sub_resp.status_code == 200:
@@ -466,6 +473,8 @@ def fetch_and_frame_press_photo(
                             if thumb.get("source"):
                                 photo_url = thumb["source"]
                                 break
+                    if photo_url:
+                        break
         except Exception as e:
             print(f"[news_visual_engine] Wikimedia fallback search failed: {e}")
 

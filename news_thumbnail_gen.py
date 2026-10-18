@@ -23,6 +23,39 @@ import config
 THUMB_W = 1280
 THUMB_H = 720
 ASSETS_DIR = getattr(config, "ASSETS_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets"))
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+THUMB_HISTORY_FILE = os.path.join(DATA_DIR, "thumbnail_history.json")
+
+
+def load_thumbnail_history() -> list:
+    """Loads recent thumbnail image base filenames to prevent visual repetition."""
+    if os.path.exists(THUMB_HISTORY_FILE):
+        try:
+            with open(THUMB_HISTORY_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("recent_images", [])
+        except Exception:
+            pass
+    return []
+
+
+def record_thumbnail_image(image_path: str):
+    """Records the chosen subject image filename in history."""
+    if not image_path:
+        return
+    history = load_thumbnail_history()
+    base = os.path.basename(image_path)
+    if base in history:
+        history.remove(base)
+    history.append(base)
+    if len(history) > 40:
+        history = history[-40:]
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(THUMB_HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump({"recent_images": history}, f, indent=2)
+    except Exception as e:
+        print(f"[news_thumbnail_gen] Failed to record thumb history: {e}")
 
 
 def _get_font(size: int, bold: bool = True, headline: bool = False) -> ImageFont.ImageFont:
@@ -273,6 +306,8 @@ def generate_news_thumbnail(
     draw.rectangle([(0, bar_y - 3), (THUMB_W, bar_y)], fill=(255, 220, 0))
 
     thumb.save(output_path, "JPEG", quality=95)
+    if subject_image_path:
+        record_thumbnail_image(subject_image_path)
     print(f"[news_thumbnail_gen] Saved broadcast thumbnail: {output_path}")
     return output_path
 
