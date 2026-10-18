@@ -629,6 +629,25 @@
       "category": "global",
       "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOQTlUeXVlVU9mLXJUd1dpdDVXWTJSaXVYU2NzbXZ5QW83c25BX3pXZzJxb0NHRVh1VEpvSHhnMWI0S0h2aXRrTXdNYmNNQzlOYWh4cUtDVUdiREItU29sUzVzWmlVbnZoVXAxXzVkZWlpejNSU0dNMWtuMVQ1N2hTVWk0ZWVaN05ldHpPYnI4Mkg?oc=5",
       "recorded_at": "2026-10-16T15:50:40.590539+00:00"
+    },
+    {
+      "title": "Congress reacts to executive order exempting Russia from economic sanctions",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPRnNZNngtODVjWnJxTVQwenhpRzBON2FWVHo1RzRVSk5fNk90dkNmRmFGdEhMc2J5SDdLTEtrckUzQkZQc1M1VVBZUFRTLTdoeE9VSFkxcWpjUFdPRHFnRy00d3BXc3NmNTNMTUFscndTQkVwVGJZeXNFRUdZTTlBUnZabDVObWROSWRFbUxwZTMxMUFBR0Z3X1BMR1I3bEI5Rnh2cElJdU1pMG5LbjA1QXYxZlZBMmF4LUFTUg?oc=5",
+      "entities": [
+        "congress",
+        "russia"
+      ],
+      "key_terms": [
+        "economic",
+        "exempt",
+        "order",
+        "sanction",
+        "react",
+        "executive"
+      ],
+      "recorded_at": "2026-10-18T22:16:38.265976+00:00"
     }
   ]
 }
