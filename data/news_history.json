@@ -688,6 +688,29 @@
         "bank"
       ],
       "recorded_at": "2026-10-19T12:00:36.375326+00:00"
+    },
+    {
+      "title": "LIVE | Trump signs executive order with first lady in White House Rose Garden",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxOZ0J6MjZoMTQ2UUJSaVFkTFQ5Ukl4LU5XTjZjNDhMNXVPS3VlbHpHUjc1eWZqVXFfa0x0Y1dEYjZsMkNpbjNJOXJ6X2dFanczZV9Rc1A3QWNiRlRTX0Z3RzlDMGVPTTJwNktYVWR3czROQUQ2cUFPdWZsM3FpaVJQNWQtX3VnTjhtSXR0V0hUMURCYW9mbGplTkthSm1lbi1scUhZ?oc=5",
+      "entities": [
+        "white house",
+        "house",
+        "trump"
+      ],
+      "key_terms": [
+        "first",
+        "executive",
+        "white",
+        "live",
+        "order",
+        "garden",
+        "rose",
+        "sign",
+        "lady"
+      ],
+      "recorded_at": "2026-10-19T18:08:19.848323+00:00"
     }
   ]
 }
