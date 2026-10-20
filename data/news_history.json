@@ -789,6 +789,25 @@
         "supreme"
       ],
       "recorded_at": "2026-10-20T16:06:14.894590+00:00"
+    },
+    {
+      "title": "Wall Street opens lower as Nvidia and Meta fall amid AI concerns",
+      "source": "",
+      "category": "economy",
+      "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPcTdaaWMtU2dnVkFDcG05STd6TkxQRHVXemlQa1k3WDFHR05wLU92V0s1VEJ1ZEFTeDRZdUE2dnBBa3R5YklGZmppMzZXT01nZm04MFgwQXQtNFphekFRNUI5dm5UQ3FEWEFPeDY0eml3Y0M3STRFdHpNLWoxNHlHUWRUQV8xdEhxZjd3aklQRmFkeTg1SjZB?oc=5",
+      "entities": [
+        "nvidia",
+        "meta"
+      ],
+      "key_terms": [
+        "open",
+        "lower",
+        "wall",
+        "fall",
+        "street",
+        "concern"
+      ],
+      "recorded_at": "2026-10-20T21:10:36.466023+00:00"
     }
   ]
 }
