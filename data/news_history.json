@@ -827,6 +827,26 @@
         "billion"
       ],
       "recorded_at": "2026-10-21T04:24:29.630870+00:00"
+    },
+    {
+      "title": "Trump waives Russia sanctions, tariffs before they take effect",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNNHVEcnRlZEs4d1diWkU0cjFRbTFEUWIxN014M2VvU3JTNW1SZlkwQUdKaTVadU1qQ0JXSkNtLVpPN3dIR1NEVExFLTI5ZXI0QlIyS25aMHNhLU5CZlNndGJzcVExV0M1MHVUbThPdDJzMC1vZWstSG5VVTNWZW9rMndkWnowdXpDQ1RWY3hZRXVmRnhXSDE2bkowZGNyT2hsbW1qY2taSWk5OS1ONlRxOWdnM2tNSldU?oc=5",
+      "entities": [
+        "russia",
+        "trump"
+      ],
+      "key_terms": [
+        "tariff",
+        "before",
+        "effect",
+        "take",
+        "sanction",
+        "they",
+        "waiv"
+      ],
+      "recorded_at": "2026-10-21T11:06:40.698436+00:00"
     }
   ]
 }
