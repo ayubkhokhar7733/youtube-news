@@ -1224,6 +1224,25 @@
         "broker"
       ],
       "recorded_at": "2026-10-25T20:19:31.711652+00:00"
+    },
+    {
+      "title": "Trump’s tariffs fail to cut US trade deficit, IW report shows",
+      "source": "",
+      "category": "economy",
+      "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNOEZqcEJVckg3bE5qWXV6NW1jekVFUjZscm9mN1pqMUQ0amVlVHUwVUdOYl9HUWZ6eVliVWIwOWtXRjU0YV9pNEZzU1RjczAzRXRjTHkyb01tY1BKajEyOVYwRkdjeS03YkpEemw4V19yakF5dE9kc2FmaXpoTm5Pa2ZhZGNISmhNZnN4TWxzT0N3dw?oc=5",
+      "entities": [
+        "trump"
+      ],
+      "key_terms": [
+        "tariff",
+        "show",
+        "fail",
+        "cut",
+        "trade",
+        "deficit",
+        "report"
+      ],
+      "recorded_at": "2026-10-30T13:24:35.088710+00:00"
     }
   ]
 }
