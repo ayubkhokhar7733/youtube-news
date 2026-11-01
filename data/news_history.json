@@ -1428,6 +1428,27 @@
         "white"
       ],
       "recorded_at": "2026-11-01T17:39:29.936940+00:00"
+    },
+    {
+      "title": "Trump vows 'close' scrutiny of China spy plot targeting Nvidia CEO",
+      "source": "",
+      "category": "tech_power",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQZmJKb0VKSUhxMDdSSV8tTXFJSkVHM0ppYmQzbDFLR1FLd1JwRHZPQ01lS1hmTWhqRTZYMTR1My1qcWhoaW9mblUzYkxNTm9sRGRaQkhSeUpPNUs4ci0tNkVUdWJOcTl1WkI4SURNSG9MVVR5S1NXNHNjdV9YVmVPLTQxZXk5LTBwYjl3U3ZCdlNLN2hwQ1M0VjNlVGw0OWRvYVd2UnNn?oc=5",
+      "entities": [
+        "nvidia",
+        "china",
+        "trump"
+      ],
+      "key_terms": [
+        "spy",
+        "ceo",
+        "target",
+        "vow",
+        "scrutiny",
+        "plot",
+        "close"
+      ],
+      "recorded_at": "2026-11-01T21:38:15.691225+00:00"
     }
   ]
 }
