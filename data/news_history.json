@@ -1449,6 +1449,28 @@
         "close"
       ],
       "recorded_at": "2026-11-01T21:38:15.691225+00:00"
+    },
+    {
+      "title": "Claude Code agent sat inside a Pentagon network for two months, Accenture rejects the claims",
+      "source": "",
+      "category": "tech_power",
+      "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxQeTRtcXdoZEJucTJjRnZEd3RqakZldXdkRjFzejl6dXRRdkt0Q1NmRm9aQ2xkd3VRc2VjOUlzVjhyWVZ5N055eUlNNGZyZTV4a2g3eWgyQjVDVTViMGxwbGkwMmtPR0FzSzQ0QWF1dVV5NktXYnpQNmR1UDYwNnpmNXFydTJESHBfVnhDOHNsdk5KUQ?oc=5",
+      "entities": [
+        "pentagon"
+      ],
+      "key_terms": [
+        "accenture",
+        "two",
+        "agent",
+        "sat",
+        "code",
+        "month",
+        "claim",
+        "reject",
+        "claude",
+        "inside"
+      ],
+      "recorded_at": "2026-11-02T05:42:26.594499+00:00"
     }
   ]
 }
