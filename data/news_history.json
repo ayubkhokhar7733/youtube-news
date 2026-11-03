@@ -1612,6 +1612,29 @@
         "appointee"
       ],
       "recorded_at": "2026-11-03T13:34:07.147673+00:00"
+    },
+    {
+      "title": "First lady Melania Trump to convene Russian and Ukrainian officials at the White House",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxOSDF4N1p0TzYyVWt5RkVUYXA4LUVpQURCMElsV3dPYmltNlpOTi0wT2tvNkhrQ0xUSlFsRXNFT3lLVEtuNnlhQjNLZHU3eUVHdThHYXY3bmxDanhlTXpxN1Y3dEZNX3A2SlkzTnlXNTN4Q25BTFJlQXZKQjF2bDZPZG9wdURoSVFDbV93UkVuOG5tb1ZmM0NHSGpHWjNsc2ZZdThMeVhvbERneU9xQ29FSHdKbkIxQVV1SDg3ekdmOFVCX0hJZFdRV01Xbjl1d1hDcXc?oc=5",
+      "entities": [
+        "russia",
+        "white house",
+        "house",
+        "trump"
+      ],
+      "key_terms": [
+        "convene",
+        "first",
+        "ukrainian",
+        "lady",
+        "melania",
+        "official",
+        "white",
+        "russian"
+      ],
+      "recorded_at": "2026-11-03T19:02:07.036323+00:00"
     }
   ]
 }
