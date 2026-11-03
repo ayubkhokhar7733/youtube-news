@@ -1593,6 +1593,25 @@
         "hormuz"
       ],
       "recorded_at": "2026-11-03T06:54:26.620528+00:00"
+    },
+    {
+      "title": "OpenAI Hires Dan Driscoll, Former Trump Appointee at Pentagon",
+      "source": "",
+      "category": "tech_power",
+      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPLUVkRFREbEphaUZsZTRiRGZ1VnRUSmJHZ3Bzd0FKblBGbEt5RFk2R1U4MnE4Ni10ZzdIX3NOMjk2cWppRkJDM1FlcWtMQTVCOHg3eFRZUGJXZUpRd05RMC02dWpMb1BoMmE2bFVrZXRmMWY5aGFZQXVNazIySDN1cGl3SzBkWlQ1c1UydHliQVdhS0h6S0JWUWFaeGp6TVFsNGx2ZVJUQ1BUWG94?oc=5",
+      "entities": [
+        "pentagon",
+        "openai",
+        "trump"
+      ],
+      "key_terms": [
+        "former",
+        "dan",
+        "driscoll",
+        "hir",
+        "appointee"
+      ],
+      "recorded_at": "2026-11-03T13:34:07.147673+00:00"
     }
   ]
 }
