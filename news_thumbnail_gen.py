@@ -15,6 +15,7 @@ Features:
 import os
 import sys
 import re
+import json
 import math
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 
@@ -101,44 +102,58 @@ def _get_font(size: int, bold: bool = True, headline: bool = False) -> ImageFont
 
 def _extract_punchy_headline(title: str) -> list:
     """
-    Condenses a headline into 2-3 short, ultra-punchy lines (2 words per line)
-    for maximum thumbnail CTR on mobile screens.
+    Extracts 2-4 ultra-punchy trigger words (in 2 compact lines) that complement
+    the title rather than repeating it, following YouTube Studio CTR guidelines.
     """
-    clean = re.sub(r'[:\-–—].*$', '', title).strip()
+    t_clean = title.strip()
+    # Strip leading prefixes (BREAKING:, ALERT:, etc.) so they don't consume badge space
+    t_clean = re.sub(r'^(BREAKING|ALERT|SPECIAL REPORT|UPDATE)[:\s\-–—]+', '', t_clean, flags=re.IGNORECASE).strip()
+    t_clean = re.sub(r'^(Why the|Inside the|The Truth About|What Happened to)\s+', '', t_clean, flags=re.IGNORECASE).strip()
+
+    lower = t_clean.lower()
+
+    # 1. Proven High-CTR Thematic Badges
+    if any(k in lower for k in ["green card", "visa", "visas", "h-1b"]):
+        return ["GREEN CARDS", "FROZEN NOW"]
+    if "national emergency" in lower or "emergency declared" in lower:
+        return ["NATIONAL", "EMERGENCY"]
+    if any(k in lower for k in ["press secretary", "appoints", "names", "cabinet pick"]):
+        return ["WHITE HOUSE", "APPOINTMENT"]
+    if "trade deficit" in lower or ("tariff" in lower and "order" in lower):
+        return ["TRADE DEFICIT", "SHOCK MOVE"]
+    if "senate" in lower and any(k in lower for k in ["lawsuit", "sue", "doj", "court"]):
+        return ["DOJ LAWSUIT", "SENATE BATTLE"]
+    if "musk" in lower and "white house" in lower:
+        return ["MUSK RETURNS", "WHITE HOUSE"]
+    if "supreme court" in lower:
+        return ["SUPREME COURT", "SHOWDOWN"]
+    if any(k in lower for k in ["federal reserve", "rate cut", "powell"]):
+        return ["FED RATE", "SHOCK MOVE"]
+
+    # 2. General Smart Keyword Badge Extraction
+    clean = re.sub(r'[:\-–—].*$', '', t_clean).strip()
     clean = re.sub(r'[^\w\s,\$%\.]', '', clean).strip()
     words = clean.split()
 
-    if len(words) <= 2:
-        return [" ".join(words).upper()]
-
-    if len(words) <= 4:
-        return [" ".join(words[:2]).upper(), " ".join(words[2:]).upper()]
-
-    # Meaningful keyword filter (keep numbers, $ amounts, names, strong verbs/nouns)
     filler = {
         "the", "a", "an", "of", "and", "in", "to", "over", "for", "on",
         "from", "with", "at", "by", "as", "into", "amid", "after", "before",
         "during", "about", "between", "through", "under", "that", "this",
+        "matters", "now", "what", "happens", "next", "is", "are", "was", "were",
     }
     meaningful = [w for w in words if w.lower() not in filler]
-    if len(meaningful) < 3:
-        meaningful = words
+    if not meaningful:
+        meaningful = words[:4]
 
-    lines = []
-    if len(meaningful) >= 5:
-        lines.append(" ".join(meaningful[:2]).upper())
-        lines.append(" ".join(meaningful[2:4]).upper())
-        lines.append(" ".join(meaningful[4:6]).upper())
-    elif len(meaningful) == 4:
-        lines.append(" ".join(meaningful[:2]).upper())
-        lines.append(" ".join(meaningful[2:4]).upper())
+    if len(meaningful) >= 4:
+        return [" ".join(meaningful[:2]).upper(), " ".join(meaningful[2:4]).upper()]
     elif len(meaningful) == 3:
-        lines.append(" ".join(meaningful[:2]).upper())
-        lines.append(meaningful[2].upper())
-    else:
-        lines.append(" ".join(meaningful[:2]).upper())
-
-    return [ln for ln in lines if ln]
+        return [" ".join(meaningful[:2]).upper(), meaningful[2].upper()]
+    elif len(meaningful) == 2:
+        return [meaningful[0].upper(), meaningful[1].upper()]
+    elif len(meaningful) == 1:
+        return [meaningful[0].upper()]
+    return ["BREAKING", "REPORT"]
 
 
 def generate_news_thumbnail(

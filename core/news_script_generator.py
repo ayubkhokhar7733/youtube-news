@@ -48,10 +48,18 @@ def _build_news_prompt(dossier: dict, target_dur: int, scene_count: int, target_
     is_longform = target_dur >= 180
     words_per_scene = round(target_words / scene_count)
 
-    cta_text = (
-        "End the final scene with a forward-looking analytical observation and the exact sign-off sentence: 'Follow for real-time verified updates.'\n"
-        "STRICTLY FORBIDDEN: Do NOT use cheesy YouTube lines like 'Smash that like button' or 'Subscribe to my channel'."
-    )
+    if is_longform:
+        cta_text = (
+            "End the final scene with a forward-looking analytical observation and a clean channel bridge: 'Follow Global Pulse 24 for continuous verified coverage.'\n"
+            "STRICTLY FORBIDDEN: Do NOT use cheesy YouTube lines like 'Smash that like button' or 'Subscribe to my channel'."
+        )
+    else:
+        cta_text = (
+            "=== SHORTS RETENTION & SEAMLESS LOOP RULES ===\n"
+            "1. TIGHT FIRST 2 SECONDS: Scene 1 MUST dive immediately into the core flashpoint with zero warmup, greeting, or filler.\n"
+            "2. SEAMLESS LOOP / DISCOVERY BRIDGE: The final sentence of the last scene MUST create a seamless loop that flows right back into the opening premise (so the Short loops effortlessly), OR end with the punchy phrase: 'Full breakdown linked below.'\n"
+            "3. FORBIDDEN: Never end with 'Follow for real-time verified updates' or generic filler sign-offs."
+        )
 
     narrative_structure = ""
     if is_longform:
@@ -95,7 +103,7 @@ def _build_news_prompt(dossier: dict, target_dur: int, scene_count: int, target_
         f"- 'broll_video': Display authentic camera B-roll footage (provide search query like 'newsroom broadcast studio', 'wall street stock trading', 'capitol hill building', 'data center servers').\n\n"
         f"Return ONLY valid JSON (no markdown code fence, no commentary):\n"
         "{\n"
-        '  "title": "High-CTR YouTube Title (60-70 chars max)",\n'
+        '  "title": "High-CTR YouTube Title (45-58 chars STRICT MAX, complete & punchy, NEVER cut off)",\n'
         '  "ticker_text": "PUNCHY 6-10 WORD SUMMARY FOR RUNNING LOWER-THIRD TICKER",\n'
         '  "category_label": "SPECIAL REPORT | BREAKING DISPATCH | ECONOMIC ALERT",\n'
         '  "scenes": [\n'
@@ -219,7 +227,7 @@ def _generate_fallback_news_script(dossier: dict, target_dur: int) -> dict:
                 },
             },
             {
-                "narration": f"We will continue monitoring this story as official briefings and primary documents are released. Follow for real-time verified updates.",
+                "narration": f"We will continue monitoring this story as official briefings and primary documents are released. Follow Global Pulse 24 for continuous verified coverage.",
                 "duration_sec": 12,
                 "visual_type": "press_photo",
                 "visual_spec": {
@@ -231,7 +239,7 @@ def _generate_fallback_news_script(dossier: dict, target_dur: int) -> dict:
         # Standard Short form (~45s, 4 scenes)
         scenes = [
             {
-                "narration": f"Breaking news: {title}. Verified reports from {source} indicate significant developments unfolding right now.",
+                "narration": f"A major shift just happened: {title}. Verified reporting from {source} reveals high-stakes developments taking effect right now.",
                 "duration_sec": 12,
                 "visual_type": "headline_card",
                 "visual_spec": {
@@ -259,7 +267,7 @@ def _generate_fallback_news_script(dossier: dict, target_dur: int) -> dict:
                 },
             },
             {
-                "narration": f"We will continue monitoring this story as new statements arrive from Washington and industry leaders. Follow for real-time verified updates.",
+                "narration": f"Key stakeholders are bracing for immediate fallout nationwide. Full breakdown linked below.",
                 "duration_sec": 10,
                 "visual_type": "broll_video",
                 "visual_spec": {
@@ -269,7 +277,7 @@ def _generate_fallback_news_script(dossier: dict, target_dur: int) -> dict:
         ]
 
     return {
-        "title": title[:70],
+        "title": title[:58],
         "ticker_text": title.upper()[:80],
         "category_label": cat_label,
         "scenes": scenes,

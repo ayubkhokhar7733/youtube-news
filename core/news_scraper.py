@@ -359,30 +359,38 @@ def _score_story_for_us_audience(cand: dict) -> float:
     score = 10.0
 
     # Tier-1 High-Velocity US Viral Triggers (+6 each)
+    # Calibrated against top channel hits (appointments, emergencies, green card freezes, antitrust)
     high_velocity = [
         "trump", "white house", "executive order", "supreme court", "congress",
         "senate", "house gop", "pentagon", "tariff", "social security", "medicare",
         "elon musk", "doge", "federal reserve", "interest rate", "billion", "trillion",
         "china", "iran", "russia", "nato", "border", "deport", "fbi", "doj",
         "openai", "nvidia", "apple", "microsoft", "google", "meta", "tesla",
-        "breaking", "emergency", "ban", "lawsuit", "investigation", "sanction",
+        "breaking", "emergency", "national emergency", "ban", "lawsuit", "investigation", "sanction",
+        "names", "appoints", "press secretary", "cabinet", "freezes", "freeze",
+        "green cards", "green card", "visas", "visa", "h-1b", "trade deficit", "antitrust", "probe",
     ]
     for kw in high_velocity:
         if kw in title_l:
-            score += 6.0
+            score += 6.5
         elif kw in summary_l:
             score += 2.5
 
-    # Bonus for hard numbers / dollar stakes in headline (+4)
+    # Bonus for hard numbers / dollar stakes in headline (+4.5)
     if re.search(r'(\$\d+|\d+%|\d+\s*(million|billion|trillion))', title_l):
         score += 4.5
 
-    # Bonus for top-tier authoritative broadcast/wire sources (+3)
+    # Bonus for top-tier authoritative broadcast/wire sources (+3.5)
     top_sources = ["reuters", "associated press", "ap news", "bloomberg", "cnbc", "fox", "cnn", "politico", "wall street journal", "bbc", "axios", "the hill"]
     if any(s in source_l for s in top_sources):
         score += 3.5
 
     # Penalize low-retention academic, campus, local survey, or niche opinion pieces (-8)
+    # BUT protect federal investigations / probes into institutions (e.g. "Probes Universities")
+    has_federal_context = any(
+        ctx in combined
+        for ctx in ["trump", "white house", "federal", "doj", "investigat", "probe", "order", "freeze", "lawsuit", "green card", "visa", "executive"]
+    )
     low_interest = [
         "university", "college", "campus", "student", "professor", "survey finds",
         "study suggests", "op-ed", "opinion:", "podcast", "book review", "local school",
@@ -390,6 +398,8 @@ def _score_story_for_us_audience(cand: dict) -> float:
     ]
     for bad in low_interest:
         if bad in combined:
+            if bad in ["university", "college", "campus", "student"] and has_federal_context:
+                continue  # High-stakes federal probe / policy story, do not penalize
             score -= 8.0
 
     return score

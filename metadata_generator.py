@@ -32,42 +32,45 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 # The 5 proven title patterns from MASTER_PLAN.md §4b
 TITLE_PATTERNS = {
-    "a": "Curiosity gap: 'The [Topic] Detail Nobody Talks About'",
-    "b": "Number/list: '5 [Topic] Facts That Sound Fake (But Aren't)'",
-    "c": "Question hook: 'Why Did [Historical Event] Actually Happen?'",
-    "d": "Myth-bust: 'The Truth About [Common Belief] Is Not What You Think'",
-    "e": "Stakes/scale: 'The [Topic] That Changed Everything'",
+    "a": "Direct Action/Emergency: '[Entity] Declares [Action] Amid [Crisis]'",
+    "b": "Analytical Stakes: 'Why the [Entity] [Event] Matters Now'",
+    "c": "Policy/Labor Freeze: '[Entity] Freezes [Topic] Over [Cause]'",
+    "d": "Power Standoff: 'Inside the [Entity 1] & [Entity 2] Standoff'",
+    "e": "Breaking Appointment: 'BREAKING: [Entity] [Action] [Subject]'",
 }
 
 # The EXACT prompt template from MASTER_PLAN.md §4b
-SYSTEM_PROMPT_TEMPLATE = """You are a YouTube SEO specialist creating high-retention video metadata for a US English-speaking audience. Given the video script below, generate:
+SYSTEM_PROMPT_TEMPLATE = """You are a senior YouTube SEO specialist for Global Pulse 24, creating high-CTR, high-retention video metadata for a US English-speaking audience interested in US politics, executive actions, economic policy, and breaking news.
 
-1. TITLE (60-70 characters max):
-   - Use ONE of these proven patterns, rotate across videos, never repeat the same pattern twice in a row:
-     a) Curiosity gap: "The [Topic] Detail Nobody Talks About"
-     b) Number/list: "5 [Topic] Facts That Sound Fake (But Aren't)"
-     c) Question hook: "Why Did [Topic] Actually Happen?"
-     d) Myth-bust: "The Truth About [Topic] Is Not What You Think"
-     e) Stakes/scale: "The [Topic] That Changed Everything"
-   - Must accurately reflect the script content — no clickbait that isn't paid off in the video
-   - Front-load the specific noun/topic in the first 40 characters (helps both CTR and search)
-   - No ALL CAPS, no more than one emoji if any
+Given the video script below, generate:
 
-2. DESCRIPTION (150-300 words):
-   - First 2 sentences must work standalone (shown in search/suggested previews) — restate the hook, don't just repeat the title
-   - Include 3-5 sentences summarizing what's actually covered (real content summary, not vague teasing)
-   - Include a natural-language paragraph with likely search terms a curious viewer would type (not a keyword-stuffed list)
-   - End with a one-line channel note and upload schedule reminder
-   - Do NOT use engagement-bait phrases like "like and subscribe" as the primary CTA — one soft mention max
+1. TITLE (45 to 58 characters STRICT MAX — NEVER exceed 60 characters):
+   - Keep titles clean, complete, and punchy so they NEVER get cut off on mobile devices.
+   - Use ONE of these proven patterns (rotate across uploads, matching pattern_used '{preferred_pattern}'):
+     a) Direct Action/Emergency: "[Entity] Declares [Action] Amid [Crisis]"
+     b) Analytical Stakes: "Why the [Entity] [Event] Matters Now"
+     c) Policy/Labor Freeze: "[Entity] Freezes [Topic] Over [Cause]"
+     d) Power Standoff: "Inside the [Entity 1] & [Entity 2] Standoff"
+     e) Breaking Appointment: "BREAKING: [Entity] [Action] [Subject]"
+   - Front-load the primary entity or high-stakes action.
+   - Avoid unfinished suspense hooks or cut-off phrases. Must read as a complete, compelling headline.
+   - No ALL CAPS except for 'BREAKING' or acronyms (DOJ, FBI, AI, US, CEO). No trailing ellipsis or question fragments.
+
+2. DESCRIPTION (150-250 words):
+   - First 2 sentences must work standalone (previewed in search & mobile feeds). Restate the core breaking development and high stakes clearly.
+   - Include 3-4 sentences summarizing the verified facts and power players involved.
+   - Mention: "Full breakdown linked below." to bridge Shorts viewers to deeper coverage.
+   - Include a natural paragraph with relevant search queries viewers use to search this topic.
+   - End with: "Global Pulse 24 delivers real-time verified coverage of major political, economic, and policy developments."
 
 3. TAGS (15-20 tags):
-   - Mix of broad and specific tags matching the exact topic, figures, and concepts
-   - Include 2-3 long-tail phrases matching how someone would actually search ("why did X happen", "truth about X")
-   - No unrelated trending tags just for reach — must match actual content
+   - Key entities (e.g., White House, Congress, Trump, DOJ, Federal Reserve, etc.)
+   - High-intent search terms matching the specific event
+   - Core tags: "breaking news", "politics", "white house", "us politics", "policy update"
 
-4. CATEGORY: classify as one of [Education, Science & Technology, Entertainment, People & Blogs] based on content
+4. CATEGORY: "News & Politics"
 
-Output as JSON: {{"title": "...", "description": "...", "tags": [...], "category": "...", "pattern_used": "{preferred_pattern}"}}"""
+Output as JSON: {{"title": "...", "description": "...", "tags": [...], "category": "News & Politics", "pattern_used": "{preferred_pattern}"}}"""
 
 
 def load_pattern_history() -> list:
@@ -129,95 +132,107 @@ def strip_leading_article(text: str) -> str:
     return re.sub(r'^(the|a|an)\s+', '', text.strip(), flags=re.IGNORECASE)
 
 
-def truncate_title(title: str, max_length: int = 70) -> str:
+def truncate_title(title: str, max_length: int = 58) -> str:
     """
-    Intelligently shortens a title to max_length characters without mid-word splits.
-    Eliminates duplicate articles and removes trailing punctuation cleanly.
+    Intelligently shortens a title to max_length characters (default 58) without mid-word splits.
+    Eliminates duplicate articles and removes trailing punctuation or dangling prepositions/conjunctions.
     """
     title = " ".join(title.split()).strip()
-    # Fix duplicate leading articles
     title = re.sub(r'^(the\s+)+the\b', 'The', title, flags=re.IGNORECASE)
     title = re.sub(r'^(a\s+)+a\b', 'A', title, flags=re.IGNORECASE)
     
     if len(title) <= max_length:
         return title
     
-    # Try cutting at natural phrase breaks if the prefix is well-formed
+    # Try cutting at natural phrase breaks if prefix is well-formed
     for delim in [": ", " - ", " – ", " — "]:
         if delim in title:
             prefix = title.split(delim)[0].strip()
-            if 30 <= len(prefix) <= max_length:
+            if 25 <= len(prefix) <= max_length:
                 return prefix
 
-    # Cut at word boundary without cutting mid-word
+    # Cut at word boundary
     cut = title[:max_length].rsplit(" ", 1)[0].rstrip(" ,;:-—")
-    return cut
+    
+    # Remove dangling trailing filler words
+    dangling = {"is", "are", "was", "were", "not", "what", "you", "the", "a", "an", "and", "or", "over", "for", "to", "with", "amid", "as", "that", "in", "on", "at", "by", "its", "it"}
+    words = cut.split()
+    while words and words[-1].lower() in dangling:
+        words.pop()
+    
+    return " ".join(words).rstrip(" ,;:-—")
 
 
 def build_pattern_title(pattern: str, topic: str) -> str:
-    """Constructs a deterministic high-CTR title according to the chosen pattern."""
+    """Constructs a deterministic high-CTR breaking news title strictly under 58 chars."""
     base_topic = clean_topic_for_pattern(topic)
-    topic_no_art = strip_leading_article(base_topic)
     
+    # If topic already starts with BREAKING:, strip for uniform pattern application
+    if base_topic.upper().startswith("BREAKING:"):
+        base_topic = base_topic[9:].strip()
+
+    short_topic = base_topic
+    if len(short_topic) > 34:
+        short_topic = short_topic[:34].rsplit(" ", 1)[0].rstrip(" ,;:-—")
+    # Strip trailing conjunctions, prepositions, and cutoffs
+    dangling = {"as", "for", "in", "on", "at", "to", "with", "over", "by", "amid", "new", "and", "the", "a", "an", "is", "probes", "after"}
+    words = short_topic.split()
+    while words and words[-1].lower() in dangling:
+        words.pop()
+    short_topic = " ".join(words).rstrip(" ,;:-—")
+    short_topic_no_art = strip_leading_article(short_topic)
+
     titles_map = {
-        "a": f"The {topic_no_art} Detail Nobody Talks About",
-        "b": f"5 {topic_no_art} Facts That Sound Fake (But Aren't)",
-        "c": f"Why Did {base_topic} Actually Happen?",
-        "d": f"The Truth About {base_topic} Is Not What You Think",
-        "e": f"The {topic_no_art} That Changed Everything",
+        "a": f"{base_topic}",
+        "b": f"Why the {short_topic_no_art} Matters Now",
+        "c": f"Inside the {short_topic_no_art} Standoff",
+        "d": f"{short_topic}: What Happens Next",
+        "e": f"BREAKING: {short_topic}",
     }
     raw_title = titles_map.get(pattern, titles_map["a"])
-    return truncate_title(raw_title, max_length=70)
+    return truncate_title(raw_title, max_length=58)
 
 
 def _generate_mock_metadata(script: dict, topic: str, preferred_pattern: str) -> dict:
-    """Generates structured SEO metadata strictly following §4b rules without API calls."""
-    clean_topic = topic.strip() or script.get("title", "Historical Discovery")
+    """Generates structured SEO metadata strictly following breaking news rules without API calls."""
+    clean_topic = topic.strip() or script.get("title", "Breaking News Report")
     title = build_pattern_title(preferred_pattern, clean_topic)
 
     # Script summary extraction
     scenes = script.get("scenes", [])
     script_text = " ".join(s.get("narration", "") for s in scenes)
-    summary_snippet = script_text[:250] if script_text else f"A deep dive into the fascinating history and science of {clean_topic}."
+    summary_snippet = script_text[:250] if script_text else f"Verified reporting on {clean_topic}."
 
     description = (
-        f"What really happened with {clean_topic}? While most people know the basic story, "
-        f"the deeper truth reveals a far more complex and surprising reality.\n\n"
-        f"In this video, we explore the crucial details behind {clean_topic}. {summary_snippet} "
-        f"From ancient archives to modern scientific breakthroughs, the evidence shows why this event continues to challenge historians and scientists today.\n\n"
-        f"For curious minds exploring forgotten history, ancient technology, and unexplained science mysteries, "
-        f"understanding the true story of {clean_topic} offers fresh perspective on how historical discoveries shape our world.\n\n"
-        f"Quiet Curiosities explores the untold stories of history, science, and the unexplained. New videos uploaded daily."
+        f"Breaking coverage on {clean_topic}. Verified reports reveal significant developments unfolding across the administration and affected sectors today.\n\n"
+        f"{summary_snippet}\n\n"
+        f"For continuous updates and deep-dive investigative reporting on US politics, executive actions, and global economic policy, follow Global Pulse 24. Full breakdown linked below.\n\n"
+        f"Global Pulse 24 delivers real-time verified coverage of major political, economic, and policy developments."
     )
 
     short_topic = clean_topic.split(":")[0].split(" - ")[0].strip().lower()
     tags = [
-        "history facts",
-        "science facts",
-        "educational documentary",
-        "ancient history",
-        "did you know",
+        "breaking news",
+        "politics",
+        "us news",
+        "white house",
+        "us politics",
+        "policy update",
+        "global pulse 24",
         short_topic,
-        f"history of {short_topic}",
-        f"truth about {short_topic}",
-        f"why did {short_topic} happen",
-        f"secrets of {short_topic}",
-        "unexplained mysteries",
-        "historical discoveries",
-        "science explainer",
-        "forgotten history",
-        "fascinating facts",
+        f"{short_topic} news",
+        f"{short_topic} update",
+        f"{short_topic} breaking",
+        "executive order",
+        "congress",
+        "economy",
     ]
-
-    category = "Education"
-    if any(k in clean_topic.lower() for k in ["space", "quantum", "physics", "science", "biology", "ozone", "computer"]):
-        category = "Science & Technology"
 
     return {
         "title": title,
         "description": description.strip(),
         "tags": tags[:18],
-        "category": category,
+        "category": "News & Politics",
         "pattern_used": preferred_pattern,
     }
 
@@ -285,10 +300,10 @@ def generate_metadata(script: dict, topic: str = "", mock: bool = False) -> dict
 
         # Validate fields
         raw_title = data.get("title", build_pattern_title(preferred_pattern, clean_topic))
-        title = truncate_title(raw_title, max_length=70)
+        title = truncate_title(raw_title, max_length=58)
         description = data.get("description", "")
         tags = data.get("tags", ["history", "science", clean_topic])
-        category = data.get("category", "Education")
+        category = data.get("category", "News & Politics")
         pattern = data.get("pattern_used", preferred_pattern)
 
         result = {
@@ -424,7 +439,7 @@ def spin_motivational_metadata(
         if not raw_title:
             return _fallback_spin()
 
-        title = truncate_title(raw_title, max_length=70)
+        title = truncate_title(raw_title, max_length=58)
         desc = data.get("description", "")
         tags = data.get("tags", [clean_speaker, "motivation", "discipline"])
         cat = data.get("category", "People & Blogs")
