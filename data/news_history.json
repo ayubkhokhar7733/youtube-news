@@ -1659,6 +1659,24 @@
         "isn"
       ],
       "recorded_at": "2026-11-03T22:48:30.858835+00:00"
+    },
+    {
+      "title": "OpenAI appoints ex-US Army secretary to national security role",
+      "source": "",
+      "category": "tech_power",
+      "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPeWY5VjZhVUZYQjJRTHlsQW9QMWV2Q2lIZ2sySmlYWFpjWTBGQUFhdGpUcE1yTzFSczk1RDV3TUZzdDg4SUo1b3pmV3BOd3Y4c2tleDh0MlkwdG9UT1B3eFJTcWpjbUhmckhBMVVaaVRrY2M5cV8zQTd1OVBSSFBoOUdySUxmbzdhUnd4WmpWenZST2djYUhuZ0ZfV3pXMVdXLU1J?oc=5",
+      "entities": [
+        "openai"
+      ],
+      "key_terms": [
+        "secretary",
+        "security",
+        "army",
+        "role",
+        "national",
+        "appoint"
+      ],
+      "recorded_at": "2026-11-04T05:58:01.011462+00:00"
     }
   ]
 }
