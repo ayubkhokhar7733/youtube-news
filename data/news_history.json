@@ -1802,6 +1802,28 @@
         "soni"
       ],
       "recorded_at": "2026-11-05T19:33:41.403381+00:00"
+    },
+    {
+      "title": "Nasdaq Drops Over 5%, Philadelphia Semiconductor Index Plunges 12% as Chip and AI Infrastructure Stocks Are Sold Off; Micron Falls 17%, Nvidia Drops 9%",
+      "source": "",
+      "category": "tech_power",
+      "url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxNM2N4VDFDeTFCeF9XdjRHTzNqOVMxWmtoVE5PRXJKVzZwUUFWWTJWaElTVk1fZ2JyX1ZaTHB2RWwyS1hPSk8yemhibUI3MDRCUXVaei1GQ012Y2VDV1ktbm1UVTFxRTVUZExLUnQyS1diaWpRdEhkSVp4WUprajJmc2kxVXJWdWdTQlV1bkNZUWYtRlpLTzdyYjVxVGMtZGQ0VnR4WFU2UUxGeTl3X0VwUDBhQ2MtZWhvQjFQTDBNaG9aOVk5TmxhLV9YWEtETzN3?oc=5",
+      "entities": [
+        "nvidia"
+      ],
+      "key_terms": [
+        "semiconductor",
+        "plung",
+        "chip",
+        "micron",
+        "sold",
+        "index",
+        "fall",
+        "drop",
+        "stock",
+        "off"
+      ],
+      "recorded_at": "2026-11-05T23:11:52.571913+00:00"
     }
   ]
 }
