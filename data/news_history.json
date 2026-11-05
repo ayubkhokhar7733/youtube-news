@@ -1759,6 +1759,29 @@
         "public"
       ],
       "recorded_at": "2026-11-05T06:19:38.751386+00:00"
+    },
+    {
+      "title": "Voters have sent a message to Trump on tariffs, but the White House still holds significant power",
+      "source": "",
+      "category": "economy",
+      "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxQRlNDR3k4bXlCRG0zUmZjRnJHbEItWnVXRFp4c2FoelNKQVlMeXY2dnlmTXcxYXdfR25Da2JzXzV5NW40czRGdzREOUtGMEJONTl4cEtwdkhhM0ZKVlJYVkJZNDFLRWxZNk5OWWkxb013enlleHQybjVPaXo0b2VwQXc2VnU0V2E4N3FvNlFvSWsxcDk1elR2MkNfTGF1TkVVM2FscEdyWXpqX2laT2wwRHd3YUNJRHJkbGRMdkVsVUlYak5KcWlmNE8xSQ?oc=5",
+      "entities": [
+        "trump",
+        "white house",
+        "house"
+      ],
+      "key_terms": [
+        "message",
+        "white",
+        "tariff",
+        "significant",
+        "power",
+        "still",
+        "voter",
+        "hold",
+        "sent"
+      ],
+      "recorded_at": "2026-11-05T13:57:34.680684+00:00"
     }
   ]
 }
