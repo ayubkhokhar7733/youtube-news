@@ -1885,6 +1885,28 @@
         "probe"
       ],
       "recorded_at": "2026-11-06T18:50:29.307929+00:00"
+    },
+    {
+      "title": "President Donald J. Trump signs an Executive Order designating the Oval Office and Cabinet Room as national landmarks",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxOOUs5b0J0S1Vvd1lEbC03X3o0aFBrOXMxLUZ6Z1c3X09VbXlVM0sxYmdKRUJVQVNhOTNjdTQwRmRMQWtFSHVKMndIbFdKbG1lbklYWTBmbC1iS1Q1TW1XamdxRjRxbUxQV1hzZF8zejJYdklIVXRYazVMa3M4TUhVd3JtazFiMi0xLWFrWjVBeDdSSWNEVGVucmtNa21FX25kenRqd1V1Q0F6LWdvOG1pSmppd2Vlc2NaVFZxSXBCMU92aG11bk9kVWp6ZzBOS0JCQjN2d29BWTlMZE1oSUY4QzNmamF5ZVU?oc=5",
+      "entities": [
+        "trump"
+      ],
+      "key_terms": [
+        "designat",
+        "national",
+        "cabinet",
+        "president",
+        "landmark",
+        "sign",
+        "oval",
+        "donald",
+        "room",
+        "order"
+      ],
+      "recorded_at": "2026-11-06T22:39:50.628398+00:00"
     }
   ]
 }
