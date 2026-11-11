@@ -2265,6 +2265,26 @@
         "aggressive"
       ],
       "recorded_at": "2026-11-11T19:15:24.189595+00:00"
+    },
+    {
+      "title": "White House tells Democrats that investigating Trump administration could be criminal",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxQQmtZZ2NGUE9lNXZHZTJySFhIbHJoemVJbks5bVNEV1l4WFJSWU5xaC1TV2lWR2lwSV9vUU9GRmZjTjJCdU51UzBGcWRiamFwcTVjWWNtUGpxR3ZORG1BUFFLTERUQlpvTlFrZ190MEZfMldGOUtZdFJkVHhudkRPS2ZMaUlWZy0tVWp2SlJCck1nRHFJdUtPbFpUbndiMlVuQkhKWDJocVNGVm42aVFZZFhOSUZSNDdqMXRPQVBjOXpNVUJORmNLVw?oc=5",
+      "entities": [
+        "trump",
+        "white house",
+        "house"
+      ],
+      "key_terms": [
+        "investigat",
+        "tell",
+        "administration",
+        "criminal",
+        "white",
+        "democrat"
+      ],
+      "recorded_at": "2026-11-11T23:59:10.415823+00:00"
     }
   ]
 }
