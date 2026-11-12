@@ -2352,6 +2352,21 @@
         "return"
       ],
       "recorded_at": "2026-11-12T19:28:53.989460+00:00"
+    },
+    {
+      "title": "OpenAI’s $200M Pentagon Deal: $13.1M Obligated, or 6.6%",
+      "source": "",
+      "category": "tech_power",
+      "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxNb3RyU2dOMVJQSmc3Z0phQV9qNjNyRXVteXpNUE81TXB1Y3k1T1BnbjFwUGJRX3dBTlpHc0QtVWtSOXItT2xIUVVkZUFrSThpcVJKanN6UEYwbmNzNzIzQTQ3bk5RbVhWZk1FU2dqdS1LSEpMOXZpVnNkdW5OQkNzMlZ4bw?oc=5",
+      "entities": [
+        "openai",
+        "pentagon"
+      ],
+      "key_terms": [
+        "obligat",
+        "deal"
+      ],
+      "recorded_at": "2026-11-12T23:07:27.207117+00:00"
     }
   ]
 }
