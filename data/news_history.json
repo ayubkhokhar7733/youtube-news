@@ -2328,6 +2328,30 @@
         "abc"
       ],
       "recorded_at": "2026-11-12T14:35:03.893299+00:00"
+    },
+    {
+      "title": "ICE reports record-high immigration arrests and deportations since Trump’s return to White House",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxPTEo2WTFCZFRZTThGTERBT0RudFhUMFZMWFh2eHhMQ1IxSERvUDlublVRR3lnR2VDUmlZVm1HczQ3eFJ2UUIxSHVBRXF6azEydWx0cHQ0WUN0UWl6RmRjTk53Mk9GbmFCbDVnMmx3Y0tIMmthaXZyQVNGVUlLLXYzdjlEU1NqUWl5S3lkS0t1TkI1Nndpb2VHUjB1ZHV5Zw?oc=5",
+      "entities": [
+        "white house",
+        "house",
+        "trump"
+      ],
+      "key_terms": [
+        "white",
+        "since",
+        "report",
+        "immigration",
+        "ice",
+        "record",
+        "deportation",
+        "high",
+        "arrest",
+        "return"
+      ],
+      "recorded_at": "2026-11-12T19:28:53.989460+00:00"
     }
   ]
 }
