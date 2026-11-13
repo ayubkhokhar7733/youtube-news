@@ -2385,6 +2385,29 @@
         "congressional"
       ],
       "recorded_at": "2026-11-13T06:17:02.589999+00:00"
+    },
+    {
+      "title": "8:30 Krypton | NVIDIA CEO Jensen Huang Resigns, Trump Proposes Tim Cook as Successor; Tencent \"50% Staff Layoffs\" Rumor Addressed by Insiders; Dove's Operator Fined 800,000 Yuan for Promoting Improper Love & Marriage Views",
+      "source": "",
+      "category": "economy",
+      "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE5wVklyTnZUOUR4OG9LVmNJbG45UXhPR1lWU2xoUmRIVEZKRTdOU1NucmxBdjZzR0wyMXM0NFA3LTNySDZ1RlU0TjNlSmcxYkEyMXZR?oc=5",
+      "entities": [
+        "nvidia",
+        "trump"
+      ],
+      "key_terms": [
+        "resign",
+        "yuan",
+        "cook",
+        "rumor",
+        "jensen",
+        "ceo",
+        "tencent",
+        "love",
+        "layoff",
+        "staff"
+      ],
+      "recorded_at": "2026-11-13T13:53:12.638838+00:00"
     }
   ]
 }
