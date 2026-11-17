@@ -2696,6 +2696,24 @@
         "since"
       ],
       "recorded_at": "2026-11-17T07:39:59.548719+00:00"
+    },
+    {
+      "title": "300 Billion Tokens a Month: How NATO Is Using OpenAI’s Hacking A.I.",
+      "source": "",
+      "category": "tech_power",
+      "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1KbXFoZllQVjdOeEVCdXNwaG9NckhHMnl6VGpuU2Vmc21UTnBiclVTYzdaU185RGVoaldEbFpwMm9GZGdSdnI5NGVDNFZ6NEw5Mk54c3J4eEc3UGhyX3RQMU5haFI5ZFQ0bXV4bGNtX3lKNm8?oc=5",
+      "entities": [
+        "openai"
+      ],
+      "key_terms": [
+        "month",
+        "nato",
+        "using",
+        "billion",
+        "token",
+        "hack"
+      ],
+      "recorded_at": "2026-11-17T15:28:39.147835+00:00"
     }
   ]
 }
