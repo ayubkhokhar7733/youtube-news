@@ -124,3 +124,13 @@ jobs:
           else
             echo "ℹ️ No news history changes to commit."
           fi
+
+      - name: Upload Lightweight Run Artifacts (Thumbnails & Logs Only - 24h Retention)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: news-run-artifacts-${{ github.run_id }}
+          path: |
+            output/thumb_*.jpg
+            data/news_history.json
+          retention-days: 1
