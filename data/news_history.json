@@ -2952,6 +2952,23 @@
         "under"
       ],
       "recorded_at": "2026-11-20T14:51:53.676077+00:00"
+    },
+    {
+      "title": "House describes Nvidia sales approved to China",
+      "source": "",
+      "category": "tech_power",
+      "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTE5nSVBmLXJsWVVJamVLRmtlRGh1Y1ltNWhSekZqTFBmcm1xcVdFUWJla1BRVTlaQU1lbGhRcnRQV3FnR3VvaWVkRHdtc2t2YVU3LS1fTzE4N0oyREFQZGpvc05OYV84OGpHV2p1VzEyMkxuMGgybXc?oc=5",
+      "entities": [
+        "nvidia",
+        "house",
+        "china"
+      ],
+      "key_terms": [
+        "sal",
+        "approv",
+        "describ"
+      ],
+      "recorded_at": "2026-11-20T19:35:36.283098+00:00"
     }
   ]
 }
