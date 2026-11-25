@@ -3306,6 +3306,21 @@
         "face"
       ],
       "recorded_at": "2026-11-24T21:47:48.652103+00:00"
+    },
+    {
+      "title": "Nvidia Case Is a Test for Congress",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQc1FzcElCLXBaekltTHhVemtZLV9Sd3VtcEllZDlTTlFTUHNrdWdBSzRqYmRZSXV4UlBRVWo2Z0ZCUGFSNFExSXIxeWdGVjhxSlc2Tm1GaVpjU2xDMDE3R0xwb3BYVDRJU3dXMUxKVnE5UmRaZGdNWkVtVjFYTGJjUTRXSGYzWGdG?oc=5",
+      "entities": [
+        "congress",
+        "nvidia"
+      ],
+      "key_terms": [
+        "case",
+        "test"
+      ],
+      "recorded_at": "2026-11-25T01:52:10.322885+00:00"
     }
   ]
 }
