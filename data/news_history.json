@@ -3321,6 +3321,26 @@
         "test"
       ],
       "recorded_at": "2026-11-25T01:52:10.322885+00:00"
+    },
+    {
+      "title": "Donald Trump Jr.'s Investment Firm Faces Probe Over Federal Deals",
+      "source": "",
+      "category": "power",
+      "url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxNTkxBLUtzbHl2WlRIdE5SSEZUei01M183cjVGSWI3U3VDSDQ1eWpSc05RNlRPT1BnNjBwMTZDWlhrOFY3Y2hQdDhxRDFLT2tYazVNOWNNa1Nyd2U1R1hhZnFWWk5uQUJyUHhGcmMyVi02M1o2aG5wTVhwYnUwS3FLb3N5SmYwaU1IMmVrUA?oc=5",
+      "entities": [
+        "fed",
+        "trump"
+      ],
+      "key_terms": [
+        "fac",
+        "probe",
+        "federal",
+        "deal",
+        "donald",
+        "investment",
+        "firm"
+      ],
+      "recorded_at": "2026-11-25T08:07:38.507388+00:00"
     }
   ]
 }
